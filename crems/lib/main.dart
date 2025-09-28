@@ -1,5 +1,5 @@
+import 'package:crems/pages/SignIn.dart';
 import 'package:flutter/material.dart';
-import 'package:untitled/pages/login.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,12 +11,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Login(),
       debugShowCheckedModeBanner: false,
+      home: SignIn(),
     );
   }
 }
-
-
-
-
