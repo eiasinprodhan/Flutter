@@ -1,7 +1,13 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:crems/pages/SignIn.dart';
 import 'package:date_field/date_field.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_picker_web/image_picker_web.dart';
 import 'package:radio_group_v2/radio_group_v2.dart';
 import 'package:radio_group_v2/radio_group_v2.dart' as v2;
 
@@ -33,6 +39,10 @@ class _SignUpState extends State<SignUp> {
   DateTime? selectedDOB;
 
   final _formKey = GlobalKey<FormState>();
+
+  XFile? selectedImage;
+  Uint8List? webImage;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   Widget build(BuildContext context) {
@@ -164,6 +174,39 @@ class _SignUpState extends State<SignUp> {
 
                 SizedBox(height: 20.0),
 
+                TextButton.icon(
+                  icon: Icon(Icons.image),
+                  label: Text('Upload Image'),
+                  onPressed: pickImage,
+                ),
+                // Display selected image preview
+                if (kIsWeb && webImage != null)
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Image.memory(
+                      webImage!,
+                      height: 100,
+                      width: 100,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                else
+                  if (!kIsWeb && selectedImage != null)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image.file(
+                        File(selectedImage!.path),
+                        height: 100,
+                        width: 100,
+                        fit: BoxFit.cover,
+                      ),
+
+                    ),
+
+                SizedBox(
+                  height: 20.0,
+                ),
+
                 ElevatedButton(
                   onPressed: () {},
                   child: Text(
@@ -208,5 +251,24 @@ class _SignUpState extends State<SignUp> {
         ),
       ),
     );
+  }
+
+  Future<void> pickImage() async {
+    if (kIsWeb) {
+      var pickedImage = await ImagePickerWeb.getImageAsBytes();
+      if (pickedImage != null) {
+        setState(() {
+          webImage = pickedImage;
+        });
+      }
+    } else {
+      final XFile? pickedImage =
+      await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedImage != null) {
+        setState(() {
+          selectedImage = pickedImage;
+        });
+      }
+    }
   }
 }
