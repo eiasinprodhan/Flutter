@@ -1,5 +1,8 @@
 import 'package:crems/pages/SignUp.dart';
+import 'package:crems/pages/UserProfile.dart';
+import 'package:crems/services/AuthService.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -13,6 +16,9 @@ class _SignInState extends State<SignIn> {
   final TextEditingController password = TextEditingController();
 
   bool _obscurePassword = true;
+
+  final storage = new FlutterSecureStorage();
+  AuthService authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +70,9 @@ class _SignInState extends State<SignIn> {
                 ),
                 SizedBox(height: 20.0),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    loginUser(context);
+                  },
                   child: Text(
                     "Sign In",
                     style: TextStyle(
@@ -105,5 +113,24 @@ class _SignInState extends State<SignIn> {
         ),
       ),
     );
+  }
+
+  Future<void> loginUser(BuildContext context) async {
+    try {
+      final response = await authService.login(email.text, password.text);
+      final role = await authService.getUserRole();
+
+      if (role == 'ADMIN') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => UserProfile()),
+        );
+      }
+      else{
+        print('Unknown User: $role');
+      }
+    } catch (error) {
+      print('Login Failed: $error');
+    }
   }
 }
