@@ -64,6 +64,15 @@ class _SignUpState extends State<SignUp> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextField(
+                  controller: name,
+                  decoration: InputDecoration(
+                    labelText: "Full Name",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                ),
+                SizedBox(height: 20.0),
+                TextField(
                   controller: email,
                   decoration: InputDecoration(
                     labelText: "Email",
@@ -190,22 +199,18 @@ class _SignUpState extends State<SignUp> {
                       fit: BoxFit.cover,
                     ),
                   )
-                else
-                  if (!kIsWeb && selectedImage != null)
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Image.file(
-                        File(selectedImage!.path),
-                        height: 100,
-                        width: 100,
-                        fit: BoxFit.cover,
-                      ),
-
+                else if (!kIsWeb && selectedImage != null)
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Image.file(
+                      File(selectedImage!.path),
+                      height: 100,
+                      width: 100,
+                      fit: BoxFit.cover,
                     ),
+                  ),
 
-                SizedBox(
-                  height: 20.0,
-                ),
+                SizedBox(height: 20.0),
 
                 ElevatedButton(
                   onPressed: () {},
@@ -262,12 +267,40 @@ class _SignUpState extends State<SignUp> {
         });
       }
     } else {
-      final XFile? pickedImage =
-      await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? pickedImage = await _picker.pickImage(
+        source: ImageSource.gallery,
+      );
       if (pickedImage != null) {
         setState(() {
           selectedImage = pickedImage;
         });
+      }
+    }
+  }
+
+  void _registerEmployee() async {
+    if (_formKey.currentState!.validate()) {
+      if (password.text != confirmPassword.text) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Passwords don't macthing.")));
+        return;
+      }
+
+      if (kIsWeb) {
+        if (webImage == null) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Please select an image.")));
+          return;
+        }
+      } else {
+        if(selectedImage == null){
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Please select an image."))
+          );
+          return;
+        }
       }
     }
   }
