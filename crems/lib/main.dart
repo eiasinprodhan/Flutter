@@ -13,6 +13,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: SignIn(),
+      title: "CREMS - Corporate Real Estate Management System"
     );
   }
 }
