@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 class EmployeeService{
   final String baseUrl = "http://localhost:8080/api/employees";
 
-  Future<bool> registerJobSeekerWeb({
+  Future<bool> registerEmployee({
     required Map<String, dynamic> user,
     required Map<String, dynamic> employee,
     File? photoFile,
