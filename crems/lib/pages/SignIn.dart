@@ -118,17 +118,10 @@ class _SignInState extends State<SignIn> {
   Future<void> loginUser(BuildContext context) async {
     try {
       final response = await authService.login(email.text, password.text);
-      final role = await authService.getUserRole();
-
-      if (role == 'ADMIN') {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => UserProfile()),
         );
-      }
-      else{
-        print('Unknown User: $role');
-      }
     } catch (error) {
       print('Login Failed: $error');
     }
