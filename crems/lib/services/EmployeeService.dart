@@ -54,7 +54,6 @@ class EmployeeService {
     }
   }
 
-  /// Retrieves employee data by email.
   Future<Map<String, dynamic>?> getEmployeeByEmail(String email) async {
     try {
       final url = Uri.parse('$baseUrl/email/${Uri.encodeComponent(email)}');
