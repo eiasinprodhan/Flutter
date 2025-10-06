@@ -49,6 +49,8 @@ dependencies:
   path: ^1.9.1
   http_parser: ^4.0.0
   mime: ^1.0.0
+  cached_network_image: ^3.2.3
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:
