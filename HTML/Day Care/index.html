@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Little Stars Day Care - Quality child care services with experienced professionals. Providing a safe, nurturing environment for infants, toddlers, and preschoolers.">
+    <meta name="keywords" content="daycare, childcare, preschool, infant care, toddler care, early childhood education">
+    <title>Little Stars Day Care - Quality Child Care You Can Trust</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top" role="navigation" aria-label="Main navigation">
+        <div class="container">
+            <a class="navbar-brand" href="index.html" aria-label="Little Stars Day Care Home">
+                <i class="fas fa-child me-2" aria-hidden="true"></i>Little Stars Day Care
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html" aria-current="page">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#services">Services</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#caregivers">Caregivers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">Contact</a>
+                    </li>
+                </ul>
+                <div class="d-flex ms-3 gap-2">
+                    <a href="login.html" class="btn btn-outline-primary">
+                        <i class="fas fa-sign-in-alt me-1" aria-hidden="true"></i>Login
+                    </a>
+                    <a href="register.html" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-1" aria-hidden="true"></i>Register
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero-section" id="home">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 fade-in">
+                    <h1 class="display-3 fw-bold">Quality Child Care You Can <span class="text-gradient">Trust</span></h1>
+                    <p class="lead mb-4">Providing a safe, nurturing environment where children can learn, grow, and thrive with experienced caregivers who care.</p>
+                    <div class="d-flex flex-column flex-sm-row gap-3">
+                        <a href="#caregivers" class="btn btn-primary btn-lg">
+                            <i class="fas fa-search me-2" aria-hidden="true"></i>Find Caregivers
+                        </a>
+                        <a href="#services" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-info-circle me-2" aria-hidden="true"></i>Learn More
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6 mt-5 mt-lg-0 slide-up">
+                    <img src="images/hero-kids.jpg" alt="Happy children playing and learning in a safe daycare environment" 
+                         class="img-fluid rounded-custom shadow-custom">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 col-6">
+                    <div class="stat-item">
+                        <div class="stat-number">500+</div>
+                        <div class="stat-label">Happy Families</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-item">
+                        <div class="stat-number">50+</div>
+                        <div class="stat-label">Expert Caregivers</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-item">
+                        <div class="stat-number">10+</div>
+                        <div class="stat-label">Years Experience</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-item">
+                        <div class="stat-number">99%</div>
+                        <div class="stat-label">Satisfaction Rate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="py-5 bg-light" id="services">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-4 fw-bold mb-3">Our <span class="text-gradient">Services</span></h2>
+                <p class="lead text-muted max-width-600">Comprehensive child care solutions tailored to your family's needs</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card service-card h-100">
+                        <div class="card-body">
+                            <i class="fas fa-baby fa-3x mb-3" aria-hidden="true"></i>
+                            <h3 class="h4 mb-3">Infant Care</h3>
+                            <p class="text-muted">Specialized care for infants from 6 weeks to 12 months with experienced, certified caregivers who understand infant development.</p>
+                            <ul class="list-unstyled mt-3">
+                                <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Certified caregivers</li>
+                                <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Safe sleep practices</li>
+                                <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Developmental activities</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card service-card h-100">
+                        <div class="card-body">
+                            <i class="fas fa-child fa-3x mb-3" aria-hidden="true"></i>
+                            <h3 class="h4 mb-3">Toddler Care</h3>
+                            <p class="text-muted">Engaging activities and learning programs designed specifically for toddlers aged 1-3 years to support their rapid development.</p>
+                            <ul class="list-unstyled mt-3">
+                                <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Interactive learning</li>
+                                <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Social skill development</li>
+                                <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Creative play activities</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card service-card h-100">
+                        <div class="card-body">
+                            <i class="fas fa-graduation-cap fa-3x mb-3" aria-hidden="true"></i>
+                            <h3 class="h4 mb-3">Preschool</h3>
+                            <p class="text-muted">Comprehensive Pre-K programs that prepare children for kindergarten with structured learning and social development.</p>
+                            <ul class="list-unstyled mt-3">
+                                <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Kindergarten prep</li>
+                                <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Academic foundation</li>
+                                <li><i class="fas fa-check text-success me-2" aria-hidden="true"></i>Character building</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Caregivers Section -->
+    <section class="py-5" id="caregivers">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <div>
+                    <h2 class="display-5 fw-bold mb-2">Meet Our <span class="text-gradient">Caregivers</span></h2>
+                    <p class="lead text-muted">Experienced professionals dedicated to your child's wellbeing</p>
+                </div>
+                <a href="#" class="btn btn-outline-primary d-none d-md-block">
+                    <i class="fas fa-users me-2" aria-hidden="true"></i>View All Caregivers
+                </a>
+            </div>
+            <div class="row g-4">
+                <!-- Caregiver Card 1 -->
+                <div class="col-md-4">
+                    <div class="card caregiver-card h-100">
+                        <img src="images/caregiver1.jpg" class="card-img-top" 
+                             alt="Sarah Johnson - Experienced infant care specialist">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">Sarah Johnson</h5>
+                            <p class="card-text flex-grow-1">Experienced infant care specialist with 8 years of experience. Certified in early childhood education and CPR.</p>
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <div>
+                                    <span class="text-primary fw-bold fs-5">$25/hr</span>
+                                    <div class="rating mt-1">
+                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                        <small class="text-muted ms-1">(4.9)</small>
+                                    </div>
+                                </div>
+                                <a href="profile.html" class="btn btn-primary">
+                                    <i class="fas fa-eye me-1" aria-hidden="true"></i>View Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Caregiver Card 2 -->
+                <div class="col-md-4">
+                    <div class="card caregiver-card h-100">
+                        <img src="images/caregiver2.jpg" class="card-img-top" 
+                             alt="Michael Chen - Toddler care expert">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">Michael Chen</h5>
+                            <p class="card-text flex-grow-1">Toddler care expert with a background in child psychology. Specializes in developmental activities and behavioral guidance.</p>
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <div>
+                                    <span class="text-primary fw-bold fs-5">$22/hr</span>
+                                    <div class="rating mt-1">
+                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                        <i class="fas fa-star-half-alt" aria-hidden="true"></i>
+                                        <small class="text-muted ms-1">(4.7)</small>
+                                    </div>
+                                </div>
+                                <a href="profile.html" class="btn btn-primary">
+                                    <i class="fas fa-eye me-1" aria-hidden="true"></i>View Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Caregiver Card 3 -->
+                <div class="col-md-4">
+                    <div class="card caregiver-card h-100">
+                        <img src="images/caregiver3.jpg" class="card-img-top" 
+                             alt="Emily Rodriguez - Preschool teacher">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">Emily Rodriguez</h5>
+                            <p class="card-text flex-grow-1">Preschool teacher with 10 years of experience. Focuses on creative learning, social development, and kindergarten preparation.</p>
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <div>
+                                    <span class="text-primary fw-bold fs-5">$28/hr</span>
+                                    <div class="rating mt-1">
+                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                        <small class="text-muted ms-1">(5.0)</small>
+                                    </div>
+                                </div>
+                                <a href="profile.html" class="btn btn-primary">
+                                    <i class="fas fa-eye me-1" aria-hidden="true"></i>View Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4 d-md-none">
+                <a href="#" class="btn btn-outline-primary">
+                    <i class="fas fa-users me-2" aria-hidden="true"></i>View All Caregivers
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3">What <span class="text-gradient">Parents Say</span></h2>
+                <p class="lead text-muted">Real stories from families who trust us with their children</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card testimonial-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <img src="images/parent1.jpg" alt="David Wilson" class="rounded-circle me-3" width="60" height="60">
+                                <div>
+                                    <h5 class="mb-0">David Wilson</h5>
+                                    <p class="text-muted mb-0 small">Parent of Emma, 2 years</p>
+                                </div>
+                            </div>
+                            <p class="card-text">"Little Stars has been amazing for our daughter Emma. The caregivers are not only professional but genuinely care about each child's development. We couldn't be happier!"</p>
+                            <div class="rating">
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card testimonial-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <img src="images/parent2.jpg" alt="Lisa Thompson" class="rounded-circle me-3" width="60" height="60">
+                                <div>
+                                    <h5 class="mb-0">Lisa Thompson</h5>
+                                    <p class="text-muted mb-0 small">Parent of Alex, 4 years</p>
+                                </div>
+                            </div>
+                            <p class="card-text">"My son Alex absolutely loves going to Little Stars. He's learned so much and made wonderful friends. The preschool program has prepared him beautifully for kindergarten."</p>
+                            <div class="rating">
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                                <i class="fas fa-star-half-alt" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card testimonial-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <img src="images/parent3.jpg" alt="Robert Lee" class="rounded-circle me-3" width="60" height="60">
+                                <div>
+                                    <h5 class="mb-0">Robert Lee</h5>
+                                    <p class="text-muted mb-0 small">Parent of Sophia, 1 year</p>
+                                </div>
+                            </div>
+                            <p class="card-text">"As a first-time parent, I was nervous about leaving Sophia. The team at Little Stars made the transition seamless. I feel completely confident in their care."</p>
+                            <div class="rating">
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                                <i class="fas fa-star" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section text-center text-white">
+        <div class="container">
+            <h2 class="display-4 fw-bold mb-3">Ready to Find the Perfect Care for Your Child?</h2>
+            <p class="lead mb-4">Join our community of parents and caregivers today and give your child the quality care they deserve.</p>
+            <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+                <a href="register.html" class="btn btn-light btn-lg">
+                    <i class="fas fa-user-plus me-2" aria-hidden="true"></i>Register Now
+                </a>
+                <a href="#contact" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-phone me-2" aria-hidden="true"></i>Contact Us
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white" id="contact">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="mb-3">
+                        <i class="fas fa-child me-2 text-gradient" aria-hidden="true"></i>Little Stars Day Care
+                    </h5>
+                    <p class="mb-3">Providing quality child care services with experienced and caring professionals who understand the importance of early childhood development.</p>
+                    <div class="social-icons">
+                        <a href="#" aria-label="Follow us on Facebook">
+                            <i class="fab fa-facebook-f" aria-hidden="true"></i>
+                        </a>
+                        <a href="#" aria-label="Follow us on Twitter">
+                            <i class="fab fa-twitter" aria-hidden="true"></i>
+                        </a>
+                        <a href="#" aria-label="Follow us on Instagram">
+                            <i class="fab fa-instagram" aria-hidden="true"></i>
+                        </a>
+                        <a href="#" aria-label="Connect with us on LinkedIn">
+                            <i class="fab fa-linkedin-in" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h5 class="mb-3">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#about">About Us</a></li>
+                        <li><a href="#services">Services</a></li>
+                        <li><a href="#caregivers">Caregivers</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="mb-3">Services</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Infant Care</a></li>
+                        <li><a href="#">Toddler Care</a></li>
+                        <li><a href="#">Preschool</a></li>
+                        <li><a href="#">After School Care</a></li>
+                        <li><a href="#">Summer Programs</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="mb-3">Contact Info</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2 text-primary" aria-hidden="true"></i>
+                            123 Childcare Lane<br>
+                            <span class="ms-4">Cityville, ST 12345</span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-phone me-2 text-primary" aria-hidden="true"></i>
+                            <a href="tel:+1234567890" class="text-white">(123) 456-7890</a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2 text-primary" aria-hidden="true"></i>
+                            <a href="mailto:info@littlestars.com" class="text-white">info@littlestars.com</a>
+                        </li>
+                        <li>
+                            <i class="fas fa-clock me-2 text-primary" aria-hidden="true"></i>
+                            Mon-Fri: 6:00 AM - 7:00 PM
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 border-secondary">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0">&copy; 2023 Little Stars Day Care. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-0">
+                        <a href="#" class="text-white me-3">Privacy Policy</a>
+                        <a href="#" class="text-white">Terms of Service</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add scroll effect to navbar
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+            } else {
+                navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,3215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Black Spider - Web & Mobile App Development</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Black Spider - Professional web and mobile app development company delivering cutting-edge digital solutions.">
+    <meta name="keywords" content="web development, mobile apps, app development, software company, digital solutions">
+    <meta name="author" content="Black Spider">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Black Spider - Web & Mobile App Development">
+    <meta property="og:description" content="Transform your business with our expert development services">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕷️</text></svg>">
+    
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #2563eb;
+        --secondary: #1e40af;
+        --accent: #3b82f6;
+        --dark: #1e293b;
+        --light: #f8fafc;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --glass-white: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.8);
+        --bg-primary: #f0f4f8;
+        --bg-secondary: #ffffff;
+        --card-bg: rgba(255, 255, 255, 0.85);
+        --footer-bg: #ffffff;
+      }
+
+      [data-theme="dark"] {
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --glass-white: rgba(30, 41, 59, 0.7);
+        --glass-border: rgba(71, 85, 105, 0.3);
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --card-bg: rgba(30, 41, 59, 0.85);
+        --footer-bg: #1e293b;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        overflow-x: hidden;
+        color: var(--text-primary);
+        line-height: 1.6;
+        background: var(--bg-primary);
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+
+      /* Preloader */
+      .preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--bg-primary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+      }
+
+      .preloader.hide {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .spinner {
+        width: 60px;
+        height: 60px;
+        border: 5px solid rgba(37, 99, 235, 0.1);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+      }
+
+      .preloader-text {
+        color: var(--text-primary);
+        font-size: 1.2rem;
+        font-weight: 600;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      /* Animated Background */
+      .gradient-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background: linear-gradient(
+          135deg,
+          #e0f2fe 0%,
+          #dbeafe 25%,
+          #e0e7ff 50%,
+          #ddd6fe 75%,
+          #e0e7ff 100%
+        );
+        background-size: 400% 400%;
+        animation: gradientFlow 20s ease infinite;
+      }
+
+      [data-theme="dark"] .gradient-bg {
+        background: linear-gradient(
+          135deg,
+          #0f172a 0%,
+          #1e293b 25%,
+          #1e3a8a 50%,
+          #1e293b 75%,
+          #0f172a 100%
+        );
+      }
+
+      .glass-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(100px);
+        transition: background 0.3s ease;
+      }
+
+      [data-theme="dark"] .glass-overlay {
+        background: rgba(15, 23, 42, 0.5);
+      }
+
+      /* ✨ PROFESSIONAL PROGRAMMING ICONS BACKGROUND - FULLER COVERAGE (25 ICONS) ✨ */
+      .floating-shapes {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .shape {
+        position: absolute;
+        opacity: 0.12;
+        pointer-events: none;
+        filter: blur(0.3px);
+        transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform;
+        animation: professionalFloat 25s infinite ease-in-out;
+      }
+
+      [data-theme="light"] .shape {
+        color: #2563eb;
+        text-shadow: 0 0 30px rgba(37, 99, 235, 0.2);
+      }
+
+      [data-theme="dark"] .shape {
+        color: #3b82f6;
+        text-shadow: 0 0 35px rgba(59, 130, 246, 0.3);
+        opacity: 0.15;
+      }
+
+      /* ============ ROW 1 - TOP AREA (5 icons) ============ */
+      .shape:nth-child(1) { /* React - Top Left */
+        top: 5%;
+        left: 5%;
+        font-size: 90px;
+        animation: professionalFloat 28s infinite ease-in-out;
+        animation-delay: 0s;
+      }
+
+      .shape:nth-child(2) { /* Node.js - Top Left-Center */
+        top: 8%;
+        left: 20%;
+        font-size: 85px;
+        animation: professionalFloat 32s infinite ease-in-out;
+        animation-delay: 2s;
+      }
+
+      .shape:nth-child(3) { /* Angular - Top Center */
+        top: 4%;
+        left: 45%;
+        font-size: 88px;
+        animation: professionalFloat 30s infinite ease-in-out;
+        animation-delay: 4s;
+      }
+
+      .shape:nth-child(4) { /* Python - Top Right-Center */
+        top: 7%;
+        right: 25%;
+        font-size: 92px;
+        animation: professionalFloat 27s infinite ease-in-out;
+        animation-delay: 6s;
+      }
+
+      .shape:nth-child(5) { /* Java - Top Right */
+        top: 10%;
+        right: 8%;
+        font-size: 87px;
+        animation: professionalFloat 31s infinite ease-in-out;
+        animation-delay: 8s;
+      }
+
+      /* ============ ROW 2 - UPPER MIDDLE AREA (5 icons) ============ */
+      .shape:nth-child(6) { /* HTML5 - Upper Left */
+        top: 22%;
+        left: 8%;
+        font-size: 94px;
+        animation: professionalFloat 29s infinite ease-in-out;
+        animation-delay: 10s;
+      }
+
+      .shape:nth-child(7) { /* CSS3 - Upper Left-Center */
+        top: 25%;
+        left: 28%;
+        font-size: 86px;
+        animation: professionalFloat 33s infinite ease-in-out;
+        animation-delay: 12s;
+      }
+
+      .shape:nth-child(8) { /* Vue.js - Upper Center */
+        top: 20%;
+        left: 50%;
+        font-size: 89px;
+        animation: professionalFloat 26s infinite ease-in-out;
+        animation-delay: 14s;
+      }
+
+      .shape:nth-child(9) { /* Docker - Upper Right-Center */
+        top: 24%;
+        right: 22%;
+        font-size: 91px;
+        animation: professionalFloat 30s infinite ease-in-out;
+        animation-delay: 16s;
+      }
+
+      .shape:nth-child(10) { /* Git - Upper Right */
+        top: 28%;
+        right: 6%;
+        font-size: 88px;
+        animation: professionalFloat 28s infinite ease-in-out;
+        animation-delay: 18s;
+      }
+
+      /* ============ ROW 3 - MIDDLE AREA (5 icons) ============ */
+      .shape:nth-child(11) { /* JavaScript - Middle Left */
+        top: 42%;
+        left: 4%;
+        font-size: 93px;
+        animation: professionalFloat 31s infinite ease-in-out;
+        animation-delay: 20s;
+      }
+
+      .shape:nth-child(12) { /* TypeScript - Middle Left-Center */
+        top: 45%;
+        left: 23%;
+        font-size: 87px;
+        animation: professionalFloat 27s infinite ease-in-out;
+        animation-delay: 22s;
+      }
+
+      .shape:nth-child(13) { /* MongoDB - Middle Center */
+        top: 43%;
+        left: 48%;
+        font-size: 90px;
+        animation: professionalFloat 32s infinite ease-in-out;
+        animation-delay: 24s;
+      }
+
+      .shape:nth-child(14) { /* PostgreSQL - Middle Right-Center */
+        top: 46%;
+        right: 20%;
+        font-size: 89px;
+        animation: professionalFloat 29s infinite ease-in-out;
+        animation-delay: 26s;
+      }
+
+      .shape:nth-child(15) { /* AWS - Middle Right */
+        top: 40%;
+        right: 5%;
+        font-size: 92px;
+        animation: professionalFloat 30s infinite ease-in-out;
+        animation-delay: 28s;
+      }
+
+      /* ============ ROW 4 - LOWER MIDDLE AREA (5 icons) ============ */
+      .shape:nth-child(16) { /* PHP - Lower Middle Left */
+        top: 60%;
+        left: 10%;
+        font-size: 88px;
+        animation: professionalFloat 28s infinite ease-in-out;
+        animation-delay: 30s;
+      }
+
+      .shape:nth-child(17) { /* Laravel - Lower Middle Left-Center */
+        top: 63%;
+        left: 30%;
+        font-size: 91px;
+        animation: professionalFloat 33s infinite ease-in-out;
+        animation-delay: 32s;
+      }
+
+      .shape:nth-child(18) { /* Firebase - Lower Middle Center */
+        top: 58%;
+        left: 52%;
+        font-size: 86px;
+        animation: professionalFloat 27s infinite ease-in-out;
+        animation-delay: 34s;
+      }
+
+      .shape:nth-child(19) { /* GraphQL - Lower Middle Right-Center */
+        top: 62%;
+        right: 24%;
+        font-size: 90px;
+        animation: professionalFloat 31s infinite ease-in-out;
+        animation-delay: 36s;
+      }
+
+      .shape:nth-child(20) { /* Swift - Lower Middle Right */
+        top: 65%;
+        right: 7%;
+        font-size: 89px;
+        animation: professionalFloat 29s infinite ease-in-out;
+        animation-delay: 38s;
+      }
+
+      /* ============ ROW 5 - BOTTOM AREA (5 icons) ============ */
+      .shape:nth-child(21) { /* Kotlin - Bottom Left */
+        bottom: 12%;
+        left: 6%;
+        font-size: 87px;
+        animation: professionalFloat 30s infinite ease-in-out;
+        animation-delay: 40s;
+      }
+
+      .shape:nth-child(22) { /* Sass - Bottom Left-Center */
+        bottom: 15%;
+        left: 25%;
+        font-size: 92px;
+        animation: professionalFloat 28s infinite ease-in-out;
+        animation-delay: 42s;
+      }
+
+      .shape:nth-child(23) { /* Redis - Bottom Center */
+        bottom: 10%;
+        left: 47%;
+        font-size: 88px;
+        animation: professionalFloat 32s infinite ease-in-out;
+        animation-delay: 44s;
+      }
+
+      .shape:nth-child(24) { /* Linux - Bottom Right-Center */
+        bottom: 14%;
+        right: 22%;
+        font-size: 91px;
+        animation: professionalFloat 27s infinite ease-in-out;
+        animation-delay: 46s;
+      }
+
+      .shape:nth-child(25) { /* GitHub - Bottom Right */
+        bottom: 18%;
+        right: 5%;
+        font-size: 90px;
+        animation: professionalFloat 31s infinite ease-in-out;
+        animation-delay: 48s;
+      }
+
+      /* Professional Float Animation - Smooth & Visible */
+      @keyframes professionalFloat {
+        0%, 100% {
+          transform: translate(0, 0) rotate(0deg) scale(1);
+        }
+        25% {
+          transform: translate(20px, -25px) rotate(3deg) scale(1.05);
+        }
+        50% {
+          transform: translate(-15px, 20px) rotate(-2deg) scale(0.98);
+        }
+        75% {
+          transform: translate(18px, 15px) rotate(2deg) scale(1.03);
+        }
+      }
+
+      @keyframes gradientFlow {
+        0%, 100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+      }
+
+      /* Glass Material Effect */
+      .glass {
+        background: var(--glass-white);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 24px;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        transition: all 0.3s ease;
+      }
+
+      .glass-strong {
+        background: var(--card-bg);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border-radius: 24px;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+        transition: all 0.3s ease;
+      }
+
+      /* Navigation */
+      nav {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1000;
+        padding: 1.5rem 5%;
+        transition: all 0.3s ease;
+      }
+
+      nav.scrolled {
+        padding: 1rem 5%;
+        background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+      }
+
+      .nav-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        letter-spacing: -0.5px;
+      }
+
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+      }
+
+      .nav-links {
+        display: flex;
+        list-style: none;
+        gap: 3rem;
+        align-items: center;
+      }
+
+      .nav-links a {
+        color: var(--text-primary);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+        position: relative;
+      }
+
+      .nav-links a::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 2px;
+        background: var(--primary);
+        transition: width 0.3s;
+      }
+
+      .nav-links a:hover {
+        color: var(--primary);
+      }
+
+      .nav-links a:hover::after {
+        width: 100%;
+      }
+
+      /* Theme Toggle */
+      .theme-toggle {
+        width: 50px;
+        height: 50px;
+        background: var(--card-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        color: var(--text-primary);
+        font-size: 1.2rem;
+      }
+
+      .theme-toggle:hover {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        transform: scale(1.05);
+      }
+
+      .menu-toggle {
+        display: none;
+        flex-direction: column;
+        cursor: pointer;
+        gap: 5px;
+      }
+
+      .menu-toggle span {
+        width: 25px;
+        height: 2px;
+        background: var(--text-primary);
+        transition: all 0.3s;
+        border-radius: 2px;
+      }
+
+      /* Hero Section */
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 5%;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      .hero-content {
+        max-width: 900px;
+      }
+
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1.5rem;
+        background: var(--card-bg);
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--primary);
+        margin-bottom: 2rem;
+        border: 1px solid var(--glass-border);
+        animation: fadeInDown 0.8s ease;
+      }
+
+      .hero h1 {
+        font-size: 4.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+        line-height: 1.1;
+        letter-spacing: -2px;
+        animation: fadeInUp 0.8s ease 0.2s backwards;
+      }
+
+      .hero h1 .gradient-text {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .hero p {
+        font-size: 1.25rem;
+        margin-bottom: 2.5rem;
+        color: var(--text-secondary);
+        font-weight: 400;
+        animation: fadeInUp 0.8s ease 0.4s backwards;
+      }
+
+      .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        animation: fadeInUp 0.8s ease 0.6s backwards;
+      }
+
+      .btn {
+        padding: 1rem 2.5rem;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        font-family: inherit;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 40px rgba(37, 99, 235, 0.4);
+      }
+
+      .btn-secondary {
+        background: var(--card-bg);
+        color: var(--primary);
+        border: 1px solid var(--glass-border);
+      }
+
+      .btn-secondary:hover {
+        background: var(--bg-secondary);
+        transform: translateY(-2px);
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Section Styles */
+      section {
+        padding: 8rem 5%;
+        position: relative;
+        z-index: 1;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .section-header {
+        text-align: center;
+        max-width: 700px;
+        margin: 0 auto 4rem;
+      }
+
+      .section-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1.2rem;
+        background: var(--card-bg);
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border: 1px solid var(--glass-border);
+      }
+
+      .section-title {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+        font-weight: 700;
+        letter-spacing: -1px;
+      }
+
+      .section-subtitle {
+        font-size: 1.15rem;
+        color: var(--text-secondary);
+        line-height: 1.7;
+      }
+
+      /* About Section */
+      .about-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+      }
+
+      .about-image {
+        background: linear-gradient(
+            135deg,
+            rgba(37, 99, 235, 0.9),
+            rgba(59, 130, 246, 0.9)
+          ),
+          url("https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80");
+        background-size: cover;
+        background-position: center;
+        border-radius: 24px;
+        min-height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 5rem;
+        color: white;
+        box-shadow: 0 20px 60px rgba(37, 99, 235, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .about-image::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          135deg,
+          rgba(37, 99, 235, 0.8),
+          rgba(59, 130, 246, 0.6)
+        );
+      }
+
+      .about-image i {
+        position: relative;
+        z-index: 1;
+      }
+
+      .about-text h3 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
+      .about-text p {
+        margin-bottom: 1.5rem;
+        color: var(--text-secondary);
+        font-size: 1.05rem;
+        line-height: 1.8;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2rem;
+        margin-top: 4rem;
+      }
+
+      .stat-card {
+        text-align: center;
+        padding: 2.5rem 2rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        opacity: 0;
+        transition: opacity 0.3s;
+        border-radius: 24px;
+      }
+
+      .stat-card:hover::before {
+        opacity: 0.05;
+      }
+
+      .stat-number {
+        font-size: 3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 1;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        font-weight: 500;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Services Section */
+      .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+      }
+
+      .service-card {
+        padding: 3rem;
+        transition: all 0.4s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .service-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        opacity: 0;
+        transition: opacity 0.4s;
+        border-radius: 24px;
+      }
+
+      .service-card:hover::before {
+        opacity: 0.05;
+      }
+
+      .service-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 60px rgba(31, 38, 135, 0.25);
+      }
+
+      .service-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 1;
+        color: white;
+      }
+
+      .service-card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+        font-weight: 600;
+        position: relative;
+        z-index: 1;
+      }
+
+      .service-card p {
+        color: var(--text-secondary);
+        line-height: 1.7;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Timeline Section */
+      .timeline-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+        padding: 2rem 0;
+      }
+
+      .timeline-line-wrapper {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        transform: translateX(-50%);
+        background: rgba(37, 99, 235, 0.2);
+        overflow: hidden;
+      }
+
+      .timeline-line-progress {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 0%;
+        background: linear-gradient(180deg, var(--primary), var(--accent));
+        transition: height 0.1s ease-out;
+      }
+
+      .timeline-items {
+        position: relative;
+      }
+
+      .timeline-item {
+        position: relative;
+        margin-bottom: 4rem;
+        min-height: 120px;
+        display: flex;
+        align-items: center;
+      }
+
+      .timeline-content {
+        width: calc(50% - 40px);
+        padding: 2rem;
+      }
+
+      .timeline-item:nth-child(odd) .timeline-content {
+        margin-left: 0;
+        margin-right: auto;
+        text-align: right;
+      }
+
+      .timeline-item:nth-child(even) .timeline-content {
+        margin-left: auto;
+        margin-right: 0;
+        text-align: left;
+      }
+
+      .timeline-dot {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 20px;
+        height: 20px;
+        background: var(--primary);
+        border-radius: 50%;
+        border: 4px solid var(--bg-primary);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3);
+        transition: all 0.3s ease;
+        z-index: 10;
+      }
+
+      .timeline-item:hover .timeline-dot {
+        transform: translate(-50%, -50%) scale(1.3);
+        box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.4);
+      }
+
+      .timeline-year {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+      }
+
+      .timeline-content h3 {
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+      }
+
+      .timeline-content p {
+        color: var(--text-secondary);
+        line-height: 1.7;
+      }
+
+      /* Team Section */
+      .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+      }
+
+      .team-member {
+        text-align: center;
+        padding: 2rem;
+        transition: all 0.4s ease;
+        cursor: pointer;
+      }
+
+      .team-member:hover {
+        transform: translateY(-8px);
+      }
+
+      .team-image {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        margin: 0 auto 1.5rem;
+        background-size: cover;
+        background-position: center;
+        border: 5px solid var(--glass-border);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .team-image::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          135deg,
+          rgba(37, 99, 235, 0.3),
+          rgba(59, 130, 246, 0.3)
+        );
+      }
+
+      .team-member h3 {
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+      }
+
+      .team-role {
+        color: var(--primary);
+        font-weight: 500;
+        margin-bottom: 1rem;
+      }
+
+      .team-social {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+      }
+
+      .team-social a {
+        width: 40px;
+        height: 40px;
+        background: var(--card-bg);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-primary);
+        transition: all 0.3s;
+        border: 1px solid var(--glass-border);
+      }
+
+      .team-social a:hover {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        transform: translateY(-3px);
+      }
+
+      /* Testimonials Section */
+      #testimonials {
+        background: var(--bg-secondary);
+        overflow: hidden;
+      }
+
+      .testimonials-slider {
+        position: relative;
+        overflow: hidden;
+        padding: 2rem 0;
+      }
+
+      .testimonials-track {
+        display: flex;
+        gap: 2rem;
+        animation: slideTestimonials 30s linear infinite;
+        width: fit-content;
+      }
+
+      .testimonials-track:hover {
+        animation-play-state: paused;
+      }
+
+      @keyframes slideTestimonials {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+
+      .testimonial-card {
+        min-width: 400px;
+        max-width: 400px;
+        padding: 2.5rem;
+        transition: all 0.4s ease;
+        flex-shrink: 0;
+      }
+
+      .testimonial-card:hover {
+        transform: translateY(-8px);
+      }
+
+      .testimonial-rating {
+        color: #fbbf24;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+      }
+
+      .testimonial-text {
+        color: var(--text-secondary);
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+        font-style: italic;
+      }
+
+      .testimonial-author {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .author-image {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-size: cover;
+        background-position: center;
+        border: 3px solid var(--glass-border);
+        flex-shrink: 0;
+      }
+
+      .author-info h4 {
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 0.2rem;
+      }
+
+      .author-info p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+
+      /* Technologies Section */
+      .tech-categories {
+        display: grid;
+        gap: 2rem;
+      }
+
+      .tech-category {
+        padding: 3rem;
+      }
+
+      .tech-category h3 {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+        color: var(--text-primary);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .tech-category h3 i {
+        color: var(--primary);
+      }
+
+      .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .tech-item {
+        padding: 2rem 1.5rem;
+        text-align: center;
+        background: var(--card-bg);
+        border-radius: 16px;
+        border: 1px solid var(--glass-border);
+        transition: all 0.3s;
+        font-weight: 500;
+        color: var(--text-primary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.8rem;
+      }
+
+      .tech-item i {
+        font-size: 2.5rem;
+        color: var(--primary);
+      }
+
+      .tech-item:hover {
+        background: var(--bg-secondary);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Projects Section */
+      .project-filters {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 3rem;
+        flex-wrap: wrap;
+      }
+
+      .filter-btn {
+        padding: 0.8rem 2rem;
+        background: var(--card-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 500;
+        font-family: inherit;
+        font-size: 0.95rem;
+      }
+
+      .filter-btn:hover,
+      .filter-btn.active {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        border-color: transparent;
+      }
+
+      .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+        gap: 2rem;
+      }
+
+      .project-card {
+        padding: 0;
+        overflow: hidden;
+        transition: all 0.4s;
+        opacity: 1;
+      }
+
+      .project-card.hidden {
+        display: none;
+      }
+
+      .project-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 60px rgba(31, 38, 135, 0.25);
+      }
+
+      .project-image {
+        width: 100%;
+        height: 280px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .project-image::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          135deg,
+          rgba(37, 99, 235, 0.8),
+          rgba(59, 130, 246, 0.6)
+        );
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .project-card:hover .project-image::after {
+        opacity: 1;
+      }
+
+      .project-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .project-overlay i {
+        font-size: 3rem;
+        color: white;
+      }
+
+      .project-card:hover .project-overlay {
+        opacity: 1;
+      }
+
+      .project-content {
+        padding: 2.5rem;
+        background: var(--card-bg);
+      }
+
+      .project-content h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
+      .project-content p {
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+        line-height: 1.7;
+      }
+
+      .project-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .tag {
+        padding: 0.4rem 1rem;
+        background: rgba(37, 99, 235, 0.1);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        color: var(--primary);
+        font-weight: 500;
+        border: 1px solid rgba(37, 99, 235, 0.2);
+      }
+
+      /* CTA Section */
+      .cta-section {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        border-radius: 24px;
+        padding: 5rem 3rem;
+        text-align: center;
+        color: white;
+      }
+
+      .cta-section h2 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        font-weight: 700;
+      }
+
+      .cta-section p {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+        opacity: 0.95;
+      }
+
+      .cta-section .btn {
+        background: white;
+        color: var(--primary);
+      }
+
+      .cta-section .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Contact Section */
+      .contact-content {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 4rem;
+      }
+
+      .contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+
+      .contact-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1.5rem;
+        padding: 2rem;
+      }
+
+      .contact-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        color: white;
+      }
+
+      .contact-details h4 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
+      .contact-details p {
+        color: var(--text-secondary);
+      }
+
+      .contact-form {
+        padding: 3rem;
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-primary);
+      }
+
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        background: var(--bg-secondary);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 1rem;
+        transition: all 0.3s;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 140px;
+      }
+
+      .form-success {
+        display: none;
+        padding: 1rem;
+        background: #10b981;
+        color: white;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        font-weight: 500;
+      }
+
+      .form-success.show {
+        display: block;
+        animation: slideInDown 0.5s ease;
+      }
+
+      @keyframes slideInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Footer */
+      footer {
+        padding: 4rem 5%;
+        background: var(--footer-bg);
+        border-top: 1px solid var(--glass-border);
+        position: relative;
+        z-index: 10;
+      }
+
+      [data-theme="light"] footer {
+        background: #ffffff;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+      }
+
+      [data-theme="dark"] footer {
+        background: #1e293b;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .footer-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      .footer-logo {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .social-links a {
+        width: 50px;
+        height: 50px;
+        background: var(--card-bg);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        text-decoration: none;
+        transition: all 0.3s;
+        border: 1px solid var(--glass-border);
+        font-size: 1.2rem;
+      }
+
+      .social-links a:hover {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        transform: translateY(-3px);
+      }
+
+      .footer-text {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+      }
+
+      /* Scroll to Top */
+      .scroll-top {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 55px;
+        height: 55px;
+        background: var(--card-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        cursor: pointer;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s;
+        z-index: 999;
+        font-size: 1.3rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      }
+
+      .scroll-top.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .scroll-top:hover {
+        transform: translateY(-3px);
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+      }
+
+      /* Responsive */
+      @media (max-width: 968px) {
+        .nav-links {
+          position: fixed;
+          top: 0;
+          right: -100%;
+          height: 100vh;
+          width: 80%;
+          max-width: 350px;
+          background: var(--card-bg);
+          backdrop-filter: blur(20px);
+          flex-direction: column;
+          padding: 6rem 2rem;
+          transition: right 0.3s;
+          box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
+          align-items: flex-start;
+        }
+
+        .nav-links.active {
+          right: 0;
+        }
+
+        .menu-toggle {
+          display: flex;
+        }
+
+        .menu-toggle.active span:nth-child(1) {
+          transform: rotate(45deg) translate(8px, 8px);
+        }
+
+        .menu-toggle.active span:nth-child(2) {
+          opacity: 0;
+        }
+
+        .menu-toggle.active span:nth-child(3) {
+          transform: rotate(-45deg) translate(7px, -7px);
+        }
+
+        .hero h1 {
+          font-size: 3rem;
+        }
+
+        .about-content,
+        .contact-content {
+          grid-template-columns: 1fr;
+          gap: 3rem;
+        }
+
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .section-title {
+          font-size: 2.5rem;
+        }
+
+        .cta-section h2 {
+          font-size: 2rem;
+        }
+
+        .projects-grid,
+        .services-grid,
+        .team-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .timeline-line-wrapper {
+          left: 30px;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content,
+        .timeline-item:nth-child(even) .timeline-content {
+          width: calc(100% - 60px);
+          margin-left: 60px;
+          margin-right: 0;
+          text-align: left;
+        }
+
+        .timeline-dot {
+          left: 30px;
+        }
+
+        .testimonial-card {
+          min-width: 320px;
+          max-width: 320px;
+        }
+
+        section {
+          padding: 5rem 5%;
+        }
+
+        .shape {
+          font-size: 50px !important;
+          opacity: 0.1 !important;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .hero h1 {
+          font-size: 2.2rem;
+        }
+
+        .hero p {
+          font-size: 1.1rem;
+        }
+
+        .cta-buttons {
+          flex-direction: column;
+        }
+
+        .btn {
+          width: 100%;
+        }
+
+        .section-title {
+          font-size: 2rem;
+        }
+
+        .stats {
+          grid-template-columns: 1fr;
+        }
+
+        .testimonial-card {
+          min-width: 280px;
+          max-width: 280px;
+        }
+
+        .shape {
+          font-size: 40px !important;
+          opacity: 0.08 !important;
+        }
+      }
+    </style>
+  </head>
+  <body data-theme="light">
+    <!-- Preloader -->
+    <div class="preloader" id="preloader">
+      <div class="spinner"></div>
+      <div class="preloader-text">Loading Black Spider...</div>
+    </div>
+
+    <!-- Animated Background -->
+    <div class="gradient-bg"></div>
+    <div class="glass-overlay"></div>
+
+    <!-- ✨ Professional Programming Icons - 25 ICONS FOR FULL COVERAGE ✨ -->
+    <div class="floating-shapes">
+      <!-- Row 1 - Top Area -->
+      <i class="shape fab fa-react"></i>
+      <i class="shape fab fa-node-js"></i>
+      <i class="shape fab fa-angular"></i>
+      <i class="shape fab fa-python"></i>
+      <i class="shape fab fa-java"></i>
+      
+      <!-- Row 2 - Upper Middle Area -->
+      <i class="shape fab fa-html5"></i>
+      <i class="shape fab fa-css3-alt"></i>
+      <i class="shape fab fa-vuejs"></i>
+      <i class="shape fab fa-docker"></i>
+      <i class="shape fab fa-git-alt"></i>
+      
+      <!-- Row 3 - Middle Area -->
+      <i class="shape fab fa-js"></i>
+      <i class="shape fas fa-code"></i> <!-- TypeScript -->
+      <i class="shape fas fa-database"></i> <!-- MongoDB -->
+      <i class="shape fas fa-elephant"></i> <!-- PostgreSQL -->
+      <i class="shape fab fa-aws"></i>
+      
+      <!-- Row 4 - Lower Middle Area -->
+      <i class="shape fab fa-php"></i>
+      <i class="shape fab fa-laravel"></i>
+      <i class="shape fas fa-fire"></i> <!-- Firebase -->
+      <i class="shape fas fa-project-diagram"></i> <!-- GraphQL -->
+      <i class="shape fab fa-swift"></i>
+      
+      <!-- Row 5 - Bottom Area -->
+      <i class="shape fas fa-robot"></i> <!-- Kotlin -->
+      <i class="shape fab fa-sass"></i>
+      <i class="shape fas fa-server"></i> <!-- Redis -->
+      <i class="shape fab fa-linux"></i>
+      <i class="shape fab fa-github"></i>
+    </div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+      <div class="nav-container">
+        <div class="logo">
+          <div class="logo-icon"><i class="fas fa-spider"></i></div>
+          Black Spider
+        </div>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="#home">Home</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#team">Team</a></li>
+          <li><a href="#timeline">Timeline</a></li>
+          <li><a href="#technologies">Technologies</a></li>
+          <li><a href="#projects">Projects</a></li>
+          <li><a href="#testimonials">Testimonials</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li>
+            <div class="theme-toggle" id="themeToggle">
+              <i class="fas fa-moon"></i>
+            </div>
+          </li>
+        </ul>
+        <div class="menu-toggle" id="menuToggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <i class="fas fa-rocket"></i> Professional Development Solutions
+        </div>
+        <h1>Building Digital <span class="gradient-text">Excellence</span></h1>
+        <p>
+          We create cutting-edge web and mobile applications that transform
+          businesses and deliver exceptional user experiences.
+        </p>
+        <div class="cta-buttons">
+          <a href="#contact" class="btn btn-primary">
+            <i class="fas fa-paper-plane"></i> Start Your Project
+          </a>
+          <a href="#projects" class="btn btn-secondary">
+            <i class="fas fa-briefcase"></i> View Portfolio
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-badge">
+            <i class="fas fa-info-circle"></i> About Us
+          </div>
+          <h2 class="section-title">Your Trusted Development Partner</h2>
+          <p class="section-subtitle">
+            We combine innovation, expertise, and dedication to deliver
+            world-class digital solutions.
+          </p>
+        </div>
+        <div class="about-content">
+          <div class="about-image">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="about-text">
+            <h3>Who We Are</h3>
+            <p>
+              Black Spider is a premier web and mobile application development
+              company committed to delivering innovative digital solutions. With
+              years of experience and a passion for technology, we help
+              businesses transform their ideas into powerful digital products.
+            </p>
+            <p>
+              Our team of expert developers, designers, and strategists work
+              collaboratively to ensure every project exceeds expectations and
+              drives measurable results.
+            </p>
+            <a href="#contact" class="btn btn-primary">
+              <i class="fas fa-handshake"></i> Let's Work Together
+            </a>
+          </div>
+        </div>
+        
+        <div class="stats" id="statsSection">
+          <div class="stat-card glass-strong">
+            <div class="stat-number" data-target="150" data-suffix="+">0</div>
+            <div class="stat-label">Projects Delivered</div>
+          </div>
+          <div class="stat-card glass-strong">
+            <div class="stat-number" data-target="50" data-suffix="+">0</div>
+            <div class="stat-label">Happy Clients</div>
+          </div>
+          <div class="stat-card glass-strong">
+            <div class="stat-number" data-target="5" data-suffix="+">0</div>
+            <div class="stat-label">Years Experience</div>
+          </div>
+          <div class="stat-card glass-strong">
+            <div class="stat-number" data-target="98" data-suffix="%">0</div>
+            <div class="stat-label">Success Rate</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-badge"><i class="fas fa-cogs"></i> Services</div>
+          <h2 class="section-title">What We Offer</h2>
+          <p class="section-subtitle">
+            Comprehensive solutions tailored to your business needs.
+          </p>
+        </div>
+        <div class="services-grid">
+          <div class="service-card glass-strong">
+            <div class="service-icon">
+              <i class="fas fa-laptop-code"></i>
+            </div>
+            <h3>Web Development</h3>
+            <p>
+              Custom web applications built with modern frameworks. From
+              responsive websites to complex enterprise solutions, we deliver
+              scalable and maintainable code.
+            </p>
+          </div>
+          <div class="service-card glass-strong">
+            <div class="service-icon">
+              <i class="fas fa-mobile-alt"></i>
+            </div>
+            <h3>Mobile Development</h3>
+            <p>
+              Native and cross-platform mobile apps for iOS and Android.
+              Beautiful interfaces with seamless performance and user
+              experience.
+            </p>
+          </div>
+          <div class="service-card glass-strong">
+            <div class="service-icon">
+              <i class="fas fa-paint-brush"></i>
+            </div>
+            <h3>UI/UX Design</h3>
+            <p>
+              User-centered design that combines aesthetics with functionality.
+              Creating intuitive interfaces that users love.
+            </p>
+          </div>
+          <div class="service-card glass-strong">
+            <div class="service-icon">
+              <i class="fas fa-server"></i>
+            </div>
+            <h3>Backend Development</h3>
+            <p>
+              Robust server-side solutions with secure APIs, database
+              optimization, and cloud integration for maximum performance.
+            </p>
+          </div>
+          <div class="service-card glass-strong">
+            <div class="service-icon">
+              <i class="fas fa-cloud"></i>
+            </div>
+            <h3>Cloud Solutions</h3>
+            <p>
+              Cloud architecture design, migration, and management. Leveraging
+              AWS, Azure, and Google Cloud for optimal scalability.
+            </p>
+          </div>
+          <div class="service-card glass-strong">
+            <div class="service-icon">
+              <i class="fas fa-tools"></i>
+            </div>
+            <h3>Maintenance & Support</h3>
+            <p>
+              Continuous support and maintenance to ensure your applications run
+              smoothly with regular updates and improvements.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-badge"><i class="fas fa-users"></i> Our Team</div>
+          <h2 class="section-title">Meet Our Experts</h2>
+          <p class="section-subtitle">
+            Talented professionals dedicated to bringing your vision to life.
+          </p>
+        </div>
+        <div class="team-grid">
+          <div class="team-member glass-strong">
+            <div
+              class="team-image"
+              style="
+                background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80');
+              "
+            ></div>
+            <h3>John Anderson</h3>
+            <p class="team-role">CEO & Founder</p>
+            <div class="team-social">
+              <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+              <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+              <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+            </div>
+          </div>
+          <div class="team-member glass-strong">
+            <div
+              class="team-image"
+              style="
+                background-image: url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80');
+              "
+            ></div>
+            <h3>Sarah Johnson</h3>
+            <p class="team-role">Lead Designer</p>
+            <div class="team-social">
+              <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+              <a href="#" aria-label="Dribbble"><i class="fab fa-dribbble"></i></a>
+              <a href="#" aria-label="Behance"><i class="fab fa-behance"></i></a>
+            </div>
+          </div>
+          <div class="team-member glass-strong">
+            <div
+              class="team-image"
+              style="
+                background-image: url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80');
+              "
+            ></div>
+            <h3>Michael Chen</h3>
+            <p class="team-role">Full Stack Developer</p>
+            <div class="team-social">
+              <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+              <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+              <a href="#" aria-label="Stack Overflow"><i class="fab fa-stack-overflow"></i></a>
+            </div>
+          </div>
+          <div class="team-member glass-strong">
+            <div
+              class="team-image"
+              style="
+                background-image: url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80');
+              "
+            ></div>
+            <h3>Emily Rodriguez</h3>
+            <p class="team-role">Mobile Developer</p>
+            <div class="team-social">
+              <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+              <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+              <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            </div>
+          </div>
+          <div class="team-member glass-strong">
+            <div
+              class="team-image"
+              style="
+                background-image: url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80');
+              "
+            ></div>
+            <h3>David Williams</h3>
+            <p class="team-role">DevOps Engineer</p>
+            <div class="team-social">
+              <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+              <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+              <a href="#" aria-label="Docker"><i class="fab fa-docker"></i></a>
+            </div>
+          </div>
+          <div class="team-member glass-strong">
+            <div
+              class="team-image"
+              style="
+                background-image: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80');
+              "
+            ></div>
+            <h3>Lisa Thompson</h3>
+            <p class="team-role">Project Manager</p>
+            <div class="team-social">
+              <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+              <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+              <a href="#" aria-label="Slack"><i class="fab fa-slack"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section id="timeline">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-badge">
+            <i class="fas fa-history"></i> Our Journey
+          </div>
+          <h2 class="section-title">Company Timeline</h2>
+          <p class="section-subtitle">
+            Milestones and achievements that shaped our success story.
+          </p>
+        </div>
+        <div class="timeline-container">
+          <div class="timeline-line-wrapper">
+            <div class="timeline-line-progress" id="timelineProgress"></div>
+          </div>
+
+          <div class="timeline-items">
+            <div class="timeline-item">
+              <div class="timeline-content glass-strong">
+                <div class="timeline-year">2019</div>
+                <h3>Company Founded</h3>
+                <p>
+                  Black Spider was established with a vision to deliver
+                  exceptional digital solutions and transform businesses through
+                  technology.
+                </p>
+              </div>
+              <div class="timeline-dot"></div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-content glass-strong">
+                <div class="timeline-year">2020</div>
+                <h3>First 50 Projects</h3>
+                <p>
+                  Successfully delivered 50+ projects ranging from startups to
+                  enterprise solutions, establishing our reputation for quality.
+                </p>
+              </div>
+              <div class="timeline-dot"></div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-content glass-strong">
+                <div class="timeline-year">2021</div>
+                <h3>Team Expansion</h3>
+                <p>
+                  Grew our team to 20+ talented professionals and opened new
+                  office space to accommodate our growing business.
+                </p>
+              </div>
+              <div class="timeline-dot"></div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-content glass-strong">
+                <div class="timeline-year">2022</div>
+                <h3>Industry Recognition</h3>
+                <p>
+                  Won "Best Development Agency" award and established
+                  partnerships with leading technology providers.
+                </p>
+              </div>
+              <div class="timeline-dot"></div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-content glass-strong">
+                <div class="timeline-year">2023</div>
+                <h3>Global Reach</h3>
+                <p>
+                  Expanded services internationally, working with clients across
+                  15+ countries and delivering innovative solutions worldwide.
+                </p>
+              </div>
+              <div class="timeline-dot"></div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-content glass-strong">
+                <div class="timeline-year">2024</div>
+                <h3>Innovation Hub</h3>
+                <p>
+                  Launched our innovation lab focused on AI, ML, and emerging
+                  technologies to stay ahead of industry trends.
+                </p>
+              </div>
+              <div class="timeline-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Technologies Section -->
+    <section id="technologies">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-badge">
+            <i class="fas fa-code"></i> Tech Stack
+          </div>
+          <h2 class="section-title">Technologies We Master</h2>
+          <p class="section-subtitle">
+            Leveraging cutting-edge technologies to build future-ready
+            solutions.
+          </p>
+        </div>
+        <div class="tech-categories">
+          <div class="tech-category glass-strong">
+            <h3><i class="fas fa-desktop"></i> Frontend Development</h3>
+            <div class="tech-grid">
+              <div class="tech-item">
+                <i class="fab fa-html5"></i>
+                <div>HTML5</div>
+              </div>
+              <div class="tech-item">
+                <i class="fab fa-css3-alt"></i>
+                <div>CSS3</div>
+              </div>
+              <div class="tech-item">
+                <i class="fab fa-js"></i>
+                <div>JavaScript</div>
+              </div>
+              <div class="tech-item">
+                <i class="fab fa-bootstrap"></i>
+                <div>Bootstrap</div>
+              </div>
+              <div class="tech-item">
+                <i class="fas fa-wind"></i>
+                <div>Tailwind CSS</div>
+              </div>
+              <div class="tech-item">
+                <i class="fab fa-react"></i>
+                <div>React</div>
+              </div>
+              <div class="tech-item">
+                <i class="fab fa-angular"></i>
+                <div>Angular</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tech-category glass-strong">
+            <h3><i class="fas fa-database"></i> Backend Development</h3>
+            <div class="tech-grid">
+              <div class="tech-item">
+                <i class="fab fa-node-js"></i>
+                <div>Node.js</div>
+              </div>
+              <div class="tech-item">
+                <i class="fas fa-code"></i>
+                <div>Express.js</div>
+              </div>
+              <div class="tech-item">
+                <i class="fab fa-php"></i>
+                <div>PHP</div>
+              </div>
+              <div class="tech-item">
+                <i class="fab fa-laravel"></i>
+                <div>Laravel</div>
+              </div>
+              <div class="tech-item">
+                <i class="fab fa-java"></i>
+                <div>Java</div>
+              </div>
+              <div class="tech-item">
+                <i class="fas fa-leaf"></i>
+                <div>Spring Boot</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tech-category glass-strong">
+            <h3><i class="fas fa-mobile"></i> Mobile Development</h3>
+            <div class="tech-grid">
+              <div class="tech-item">
+                <i class="fab fa-android"></i>
+                <div>Android</div>
+              </div>
+              <div class="tech-item">
+                <i class="fas fa-mobile-alt"></i>
+                <div>Flutter</div>
+              </div>
+              <div class="tech-item">
+                <i class="fab fa-react"></i>
+                <div>React Native</div>
+              </div>
+              <div class="tech-item">
+                <i class="fab fa-apple"></i>
+                <div>iOS</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-badge">
+            <i class="fas fa-folder-open"></i> Portfolio
+          </div>
+          <h2 class="section-title">Featured Projects</h2>
+          <p class="section-subtitle">
+            Discover our recent work and success stories.
+          </p>
+        </div>
+
+        <div class="project-filters">
+          <button class="filter-btn active" data-filter="all">
+            All Projects
+          </button>
+          <button class="filter-btn" data-filter="web">Web Apps</button>
+          <button class="filter-btn" data-filter="mobile">Mobile Apps</button>
+          <button class="filter-btn" data-filter="ecommerce">E-Commerce</button>
+          <button class="filter-btn" data-filter="enterprise">
+            Enterprise
+          </button>
+        </div>
+
+        <div class="projects-grid">
+          <div class="project-card glass-strong" data-category="ecommerce web">
+            <div
+              class="project-image"
+              style="
+                background-image: url('https://images.unsplash.com/photo-1557821552-17105176677c?w=800&q=80');
+              "
+            >
+              <div class="project-overlay">
+                <i class="fas fa-search-plus"></i>
+              </div>
+            </div>
+            <div class="project-content">
+              <h3>E-Commerce Platform</h3>
+              <p>
+                A comprehensive online shopping solution with advanced features
+                including payment gateway integration, inventory management, and
+                customer analytics.
+              </p>
+              <div class="project-tags">
+                <span class="tag">React</span>
+                <span class="tag">Node.js</span>
+                <span class="tag">MongoDB</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="project-card glass-strong" data-category="enterprise web">
+            <div
+              class="project-image"
+              style="
+                background-image: url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80');
+              "
+            >
+              <div class="project-overlay">
+                <i class="fas fa-search-plus"></i>
+              </div>
+            </div>
+            <div class="project-content">
+              <h3>Business Management System</h3>
+              <p>
+                Enterprise resource planning solution streamlining operations,
+                enhancing productivity, and providing real-time business
+                intelligence.
+              </p>
+              <div class="project-tags">
+                <span class="tag">Angular</span>
+                <span class="tag">Spring Boot</span>
+                <span class="tag">MySQL</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="project-card glass-strong" data-category="mobile">
+            <div
+              class="project-image"
+              style="
+                background-image: url('https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&q=80');
+              "
+            >
+              <div class="project-overlay">
+                <i class="fas fa-search-plus"></i>
+              </div>
+            </div>
+            <div class="project-content">
+              <h3>Social Networking App</h3>
+              <p>
+                Cross-platform mobile application featuring real-time messaging,
+                media sharing, and advanced social networking capabilities.
+              </p>
+              <div class="project-tags">
+                <span class="tag">Flutter</span>
+                <span class="tag">Firebase</span>
+                <span class="tag">Cloud Functions</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="project-card glass-strong" data-category="enterprise web">
+            <div
+              class="project-image"
+              style="
+                background-image: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80');
+              "
+            >
+              <div class="project-overlay">
+                <i class="fas fa-search-plus"></i>
+              </div>
+            </div>
+            <div class="project-content">
+              <h3>Healthcare Portal</h3>
+              <p>
+                Comprehensive patient management system with appointment
+                scheduling, telemedicine, and electronic health records
+                integration.
+              </p>
+              <div class="project-tags">
+                <span class="tag">Laravel</span>
+                <span class="tag">Vue.js</span>
+                <span class="tag">PostgreSQL</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="project-card glass-strong" data-category="web">
+            <div
+              class="project-image"
+              style="
+                background-image: url('https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=800&q=80');
+              "
+            >
+              <div class="project-overlay">
+                <i class="fas fa-search-plus"></i>
+              </div>
+            </div>
+            <div class="project-content">
+              <h3>Learning Management System</h3>
+              <p>
+                Educational platform with course management, video streaming,
+                assessments, and comprehensive progress tracking features.
+              </p>
+              <div class="project-tags">
+                <span class="tag">React</span>
+                <span class="tag">Express</span>
+                <span class="tag">AWS</span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="project-card glass-strong"
+            data-category="mobile ecommerce"
+          >
+            <div
+              class="project-image"
+              style="
+                background-image: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80');
+              "
+            >
+              <div class="project-overlay">
+                <i class="fas fa-search-plus"></i>
+              </div>
+            </div>
+            <div class="project-content">
+              <h3>Food Delivery Platform</h3>
+              <p>
+                On-demand food ordering application with real-time order
+                tracking, multiple payment methods, and restaurant management.
+              </p>
+              <div class="project-tags">
+                <span class="tag">Android</span>
+                <span class="tag">Node.js</span>
+                <span class="tag">Maps API</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-badge">
+            <i class="fas fa-quote-left"></i> Testimonials
+          </div>
+          <h2 class="section-title">What Our Clients Say</h2>
+          <p class="section-subtitle">
+            Read what our satisfied clients have to say about working with us.
+          </p>
+        </div>
+        <div class="testimonials-slider">
+          <div class="testimonials-track">
+            <div class="testimonial-card glass-strong">
+              <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <p class="testimonial-text">
+                "Black Spider transformed our business with their exceptional
+                web development services. The team was professional, responsive,
+                and delivered beyond our expectations. Highly recommended!"
+              </p>
+              <div class="testimonial-author">
+                <div
+                  class="author-image"
+                  style="
+                    background-image: url('https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80');
+                  "
+                ></div>
+                <div class="author-info">
+                  <h4>Robert Martinez</h4>
+                  <p>CEO, TechCorp Solutions</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="testimonial-card glass-strong">
+              <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <p class="testimonial-text">
+                "Working with Black Spider was a game-changer for our mobile app
+                project. Their expertise in Flutter development and attention to
+                detail resulted in a beautiful, high-performance application."
+              </p>
+              <div class="testimonial-author">
+                <div
+                  class="author-image"
+                  style="
+                    background-image: url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80');
+                  "
+                ></div>
+                <div class="author-info">
+                  <h4>Jennifer Lee</h4>
+                  <p>Founder, StartupHub</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="testimonial-card glass-strong">
+              <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <p class="testimonial-text">
+                "Outstanding service from start to finish! The team at Black
+                Spider understood our vision perfectly and created an e-commerce
+                platform that exceeded all our requirements. Simply amazing!"
+              </p>
+              <div class="testimonial-author">
+                <div
+                  class="author-image"
+                  style="
+                    background-image: url('https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80');
+                  "
+                ></div>
+                <div class="author-info">
+                  <h4>James Wilson</h4>
+                  <p>Director, Global Retail Co.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="testimonial-card glass-strong">
+              <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <p class="testimonial-text">
+                "Black Spider's team delivered our enterprise solution on time
+                and within budget. Their technical expertise and project
+                management skills are truly world-class. We couldn't be
+                happier!"
+              </p>
+              <div class="testimonial-author">
+                <div
+                  class="author-image"
+                  style="
+                    background-image: url('https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&q=80');
+                  "
+                ></div>
+                <div class="author-info">
+                  <h4>Amanda Brown</h4>
+                  <p>CTO, Enterprise Systems Inc.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="testimonial-card glass-strong">
+              <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <p class="testimonial-text">
+                "The healthcare portal they developed for us has revolutionized
+                how we manage patient care. Black Spider's commitment to quality
+                and innovation is unmatched in the industry."
+              </p>
+              <div class="testimonial-author">
+                <div
+                  class="author-image"
+                  style="
+                    background-image: url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=80');
+                  "
+                ></div>
+                <div class="author-info">
+                  <h4>Dr. Michael Foster</h4>
+                  <p>Medical Director, HealthFirst</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="testimonial-card glass-strong">
+              <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <p class="testimonial-text">
+                "Exceptional work on our learning management system! Black
+                Spider created a platform that's both powerful and
+                user-friendly. Their support throughout the project was
+                outstanding."
+              </p>
+              <div class="testimonial-author">
+                <div
+                  class="author-image"
+                  style="
+                    background-image: url('https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80');
+                  "
+                ></div>
+                <div class="author-info">
+                  <h4>Patricia Davis</h4>
+                  <p>Principal, EduTech Academy</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Duplicate for seamless loop -->
+            <div class="testimonial-card glass-strong">
+              <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <p class="testimonial-text">
+                "Black Spider transformed our business with their exceptional
+                web development services. The team was professional, responsive,
+                and delivered beyond our expectations. Highly recommended!"
+              </p>
+              <div class="testimonial-author">
+                <div
+                  class="author-image"
+                  style="
+                    background-image: url('https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80');
+                  "
+                ></div>
+                <div class="author-info">
+                  <h4>Robert Martinez</h4>
+                  <p>CEO, TechCorp Solutions</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="testimonial-card glass-strong">
+              <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <p class="testimonial-text">
+                "Working with Black Spider was a game-changer for our mobile app
+                project. Their expertise in Flutter development and attention to
+                detail resulted in a beautiful, high-performance application."
+              </p>
+              <div class="testimonial-author">
+                <div
+                  class="author-image"
+                  style="
+                    background-image: url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80');
+                  "
+                ></div>
+                <div class="author-info">
+                  <h4>Jennifer Lee</h4>
+                  <p>Founder, StartupHub</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="testimonial-card glass-strong">
+              <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <p class="testimonial-text">
+                "Outstanding service from start to finish! The team at Black
+                Spider understood our vision perfectly and created an e-commerce
+                platform that exceeded all our requirements. Simply amazing!"
+              </p>
+              <div class="testimonial-author">
+                <div
+                  class="author-image"
+                  style="
+                    background-image: url('https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80');
+                  "
+                ></div>
+                <div class="author-info">
+                  <h4>James Wilson</h4>
+                  <p>Director, Global Retail Co.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="testimonial-card glass-strong">
+              <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <p class="testimonial-text">
+                "Black Spider's team delivered our enterprise solution on time
+                and within budget. Their technical expertise and project
+                management skills are truly world-class. We couldn't be
+                happier!"
+              </p>
+              <div class="testimonial-author">
+                <div
+                  class="author-image"
+                  style="
+                    background-image: url('https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&q=80');
+                  "
+                ></div>
+                <div class="author-info">
+                  <h4>Amanda Brown</h4>
+                  <p>CTO, Enterprise Systems Inc.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="testimonial-card glass-strong">
+              <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <p class="testimonial-text">
+                "The healthcare portal they developed for us has revolutionized
+                how we manage patient care. Black Spider's commitment to quality
+                and innovation is unmatched in the industry."
+              </p>
+              <div class="testimonial-author">
+                <div
+                  class="author-image"
+                  style="
+                    background-image: url('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=80');
+                  "
+                ></div>
+                <div class="author-info">
+                  <h4>Dr. Michael Foster</h4>
+                  <p>Medical Director, HealthFirst</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="testimonial-card glass-strong">
+              <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <p class="testimonial-text">
+                "Exceptional work on our learning management system! Black
+                Spider created a platform that's both powerful and
+                user-friendly. Their support throughout the project was
+                outstanding."
+              </p>
+              <div class="testimonial-author">
+                <div
+                  class="author-image"
+                  style="
+                    background-image: url('https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80');
+                  "
+                ></div>
+                <div class="author-info">
+                  <h4>Patricia Davis</h4>
+                  <p>Principal, EduTech Academy</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="cta">
+      <div class="container">
+        <div class="cta-section">
+          <h2>Ready to Start Your Project?</h2>
+          <p>
+            Let's build something amazing together. Get in touch with our team
+            today!
+          </p>
+          <a href="#contact" class="btn">
+            <i class="fas fa-rocket"></i> Get Started Now
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-badge">
+            <i class="fas fa-envelope"></i> Contact
+          </div>
+          <h2 class="section-title">Let's Start Something Great</h2>
+          <p class="section-subtitle">
+            Ready to transform your ideas into reality? Get in touch with us
+            today.
+          </p>
+        </div>
+        <div class="contact-content">
+          <div class="contact-info">
+            <div class="contact-item glass-strong">
+              <div class="contact-icon">
+                <i class="fas fa-envelope"></i>
+              </div>
+              <div class="contact-details">
+                <h4>Email Us</h4>
+                <p>info@blackspider.com</p>
+                <p>support@blackspider.com</p>
+              </div>
+            </div>
+            <div class="contact-item glass-strong">
+              <div class="contact-icon">
+                <i class="fas fa-phone-alt"></i>
+              </div>
+              <div class="contact-details">
+                <h4>Call Us</h4>
+                <p>+1 (555) 123-4567</p>
+                <p>Mon - Fri, 9AM - 6PM</p>
+              </div>
+            </div>
+            <div class="contact-item glass-strong">
+              <div class="contact-icon">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <div class="contact-details">
+                <h4>Visit Us</h4>
+                <p>123 Tech Street</p>
+                <p>Silicon Valley, CA 94025</p>
+              </div>
+            </div>
+          </div>
+
+          <form class="contact-form glass-strong" id="contactForm">
+            <div class="form-success" id="formSuccess">
+              <i class="fas fa-check-circle"></i> Thank you! We'll get back to you within 24 hours.
+            </div>
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" name="name" placeholder="John Doe" required />
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="john@example.com"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="subject">Subject</label>
+              <input
+                type="text"
+                id="subject"
+                name="subject"
+                placeholder="Project Inquiry"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea
+                id="message"
+                name="message"
+                placeholder="Tell us about your project..."
+                required
+              ></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%">
+              <i class="fas fa-paper-plane"></i> Send Message
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-content">
+        <div class="footer-logo">
+          <div class="logo-icon"><i class="fas fa-spider"></i></div>
+          Black Spider
+        </div>
+        <div class="social-links">
+          <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="LinkedIn"
+            ><i class="fab fa-linkedin-in"></i
+          ></a>
+          <a href="https://twitter.com" target="_blank" rel="noopener" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+          <a href="https://github.com" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+          <a href="https://dribbble.com" target="_blank" rel="noopener" aria-label="Dribbble"><i class="fab fa-dribbble"></i></a>
+          <a href="https://behance.net" target="_blank" rel="noopener" aria-label="Behance"><i class="fab fa-behance"></i></a>
+        </div>
+        <p class="footer-text">
+          &copy; 2025 Black Spider. All rights reserved. Crafted with excellence
+          and precision.
+        </p>
+      </div>
+    </footer>
+
+    <!-- Scroll to Top -->
+    <div class="scroll-top" id="scrollTop">
+      <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <script>
+      // Preloader
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          document.getElementById("preloader").classList.add("hide");
+        }, 1000);
+      });
+
+      // Mobile Menu Toggle
+      const menuToggle = document.getElementById("menuToggle");
+      const navLinks = document.getElementById("navLinks");
+
+      menuToggle.addEventListener("click", () => {
+        menuToggle.classList.toggle("active");
+        navLinks.classList.toggle("active");
+      });
+
+      document.querySelectorAll(".nav-links a").forEach((link) => {
+        link.addEventListener("click", () => {
+          menuToggle.classList.remove("active");
+          navLinks.classList.remove("active");
+        });
+      });
+
+      // Theme Toggle
+      const themeToggle = document.getElementById("themeToggle");
+      const html = document.documentElement;
+
+      const currentTheme = localStorage.getItem("theme") || "light";
+      html.setAttribute("data-theme", currentTheme);
+      updateThemeIcon(currentTheme);
+
+      themeToggle.addEventListener("click", () => {
+        const theme = html.getAttribute("data-theme");
+        const newTheme = theme === "light" ? "dark" : "light";
+
+        html.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+        updateThemeIcon(newTheme);
+      });
+
+      function updateThemeIcon(theme) {
+        const icon = themeToggle.querySelector("i");
+        if (theme === "dark") {
+          icon.classList.remove("fa-moon");
+          icon.classList.add("fa-sun");
+        } else {
+          icon.classList.remove("fa-sun");
+          icon.classList.add("fa-moon");
+        }
+      }
+
+      // Navbar Scroll Effect
+      const navbar = document.getElementById("navbar");
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 50) {
+          navbar.classList.add("scrolled");
+        } else {
+          navbar.classList.remove("scrolled");
+        }
+      });
+
+      // Scroll to Top
+      const scrollTop = document.getElementById("scrollTop");
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 500) {
+          scrollTop.classList.add("visible");
+        } else {
+          scrollTop.classList.remove("visible");
+        }
+      });
+
+      scrollTop.addEventListener("click", () => {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      });
+
+      // Smooth Scrolling
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute("href"));
+          if (target) {
+            const offsetTop = target.offsetTop - 80;
+            window.scrollTo({
+              top: offsetTop,
+              behavior: "smooth",
+            });
+          }
+        });
+      });
+
+      // Timeline Scroll Progress
+      function updateTimelineProgress() {
+        const timelineSection = document.getElementById("timeline");
+        const timelineProgress = document.getElementById("timelineProgress");
+
+        if (!timelineSection || !timelineProgress) return;
+
+        const rect = timelineSection.getBoundingClientRect();
+        const sectionTop = rect.top + window.pageYOffset;
+        const sectionHeight = rect.height;
+        const scrolled = window.pageYOffset;
+        const windowHeight = window.innerHeight;
+
+        const startProgress = sectionTop - windowHeight + 200;
+        const endProgress = sectionTop + sectionHeight - 200;
+
+        if (scrolled > startProgress && scrolled < endProgress) {
+          const progress =
+            ((scrolled - startProgress) / (endProgress - startProgress)) * 100;
+          timelineProgress.style.height = Math.min(progress, 100) + "%";
+        } else if (scrolled <= startProgress) {
+          timelineProgress.style.height = "0%";
+        } else {
+          timelineProgress.style.height = "100%";
+        }
+      }
+
+      window.addEventListener("scroll", updateTimelineProgress);
+      window.addEventListener("load", updateTimelineProgress);
+
+      // Project Filtering
+      const filterBtns = document.querySelectorAll(".filter-btn");
+      const projectCards = document.querySelectorAll(".project-card");
+
+      filterBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          filterBtns.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+
+          const filter = btn.getAttribute("data-filter");
+
+          projectCards.forEach((card) => {
+            if (filter === "all") {
+              card.classList.remove("hidden");
+            } else {
+              const categories = card.getAttribute("data-category");
+              if (categories.includes(filter)) {
+                card.classList.remove("hidden");
+              } else {
+                card.classList.add("hidden");
+              }
+            }
+          });
+        });
+      });
+
+      // Enhanced Form Submission
+      document.getElementById("contactForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        
+        const formSuccess = document.getElementById("formSuccess");
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        submitBtn.disabled = true;
+        
+        setTimeout(() => {
+          formSuccess.classList.add("show");
+          e.target.reset();
+          submitBtn.innerHTML = originalBtnText;
+          submitBtn.disabled = false;
+          
+          setTimeout(() => {
+            formSuccess.classList.remove("show");
+          }, 5000);
+        }, 1500);
+      });
+
+      // Stats Counting Animation
+      function animateCounter(element) {
+        const target = parseInt(element.getAttribute("data-target"));
+        const suffix = element.getAttribute("data-suffix") || "";
+        const duration = 2000;
+        const frameDuration = 1000 / 60;
+        const totalFrames = Math.round(duration / frameDuration);
+        let frame = 0;
+
+        const counter = setInterval(() => {
+          frame++;
+          const progress = frame / totalFrames;
+          const easeOutQuad = 1 - Math.pow(1 - progress, 3);
+          const currentCount = Math.round(easeOutQuad * target);
+
+          element.textContent = currentCount + suffix;
+
+          if (frame === totalFrames) {
+            clearInterval(counter);
+            element.textContent = target + suffix;
+          }
+        }, frameDuration);
+      }
+
+      const statsObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const statNumbers = entry.target.querySelectorAll(".stat-number");
+              
+              statNumbers.forEach((stat) => {
+                if (!stat.classList.contains("counted")) {
+                  stat.classList.add("counted");
+                  animateCounter(stat);
+                }
+              });
+            }
+          });
+        },
+        { 
+          threshold: 0.5,
+          rootMargin: "0px"
+        }
+      );
+
+      const statsSection = document.getElementById("statsSection");
+      if (statsSection) {
+        statsObserver.observe(statsSection);
+      }
+
+      // Intersection Observer for Scroll Animations
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: "0px 0px -100px 0px",
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = "1";
+            entry.target.style.transform = "translateY(0)";
+          }
+        });
+      }, observerOptions);
+
+      document
+        .querySelectorAll(
+          ".service-card, .project-card, .tech-category, .stat-card, .contact-item, .team-member, .timeline-item"
+        )
+        .forEach((el) => {
+          el.style.opacity = "0";
+          el.style.transform = "translateY(30px)";
+          el.style.transition = "all 0.6s ease";
+          observer.observe(el);
+        });
+
+      // Console Easter Egg
+      console.log("%c🕷️ Black Spider", "color: #2563eb; font-size: 24px; font-weight: bold;");
+      console.log("%c💼 Looking for talented developers? We're hiring!", "color: #3b82f6; font-size: 14px;");
+      console.log("%c📧 Contact: careers@blackspider.com", "color: #64748b; font-size: 12px;");
+    </script>
+  </body>
+</html>
