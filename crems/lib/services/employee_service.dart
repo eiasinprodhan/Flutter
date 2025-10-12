@@ -1,164 +1,213 @@
 import 'dart:convert';
-import '../models/employee_model.dart';
-import '../models/user_model.dart';
-import '../utils/constants.dart';
-import '../utils/image_picker_helper.dart';
-import 'api_service.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker/image_picker.dart';
+import '../models/employee.dart';
+import '../models/user.dart';
+import 'auth_service.dart';
 
 class EmployeeService {
-  /// Get all employees - Token from LocalStorage
-  Future<List<Employee>> getAllEmployees() async {
+  static const String baseUrl = 'http://localhost:8080/api/employees';
+
+  // Helper to get headers
+  static Map<String, String> _getHeaders() {
+    final token = AuthService.token;
+    if (token == null) {
+      throw Exception('Authentication token not found. Please log in.');
+    }
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+  }
+
+  // Helper to get headers for multipart requests
+  static Map<String, String> _getMultipartHeaders() {
+    final token = AuthService.token;
+    if (token == null) {
+      throw Exception('Authentication token not found. Please log in.');
+    }
+    return {
+      'Authorization': 'Bearer $token',
+    };
+  }
+
+  static Future<List<Employee>> getAllEmployees() async {
     try {
-      print('📋 Fetching all employees...');
-      final response = await ApiService.get('${AppConstants.employeeEndpoint}/');
+      final response = await http.get(
+        Uri.parse('$baseUrl/'),
+        headers: _getHeaders(),
+      );
 
       if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        print('✅ Retrieved ${data.length} employees');
+        List<dynamic> data = jsonDecode(response.body);
         return data.map((json) => Employee.fromJson(json)).toList();
       } else {
-        ApiService.handleError(response);
         throw Exception('Failed to load employees: ${response.statusCode}');
       }
     } catch (e) {
-      print('💥 Error fetching employees: $e');
-      throw Exception('Error fetching employees: $e');
+      print('Get all employees error: $e');
+      rethrow; // Rethrow to be caught by UI
     }
   }
 
-  /// Get employee by ID - Token from LocalStorage
-  Future<Employee> getEmployeeById(int id) async {
+  static Future<Employee?> getEmployeeById(int id) async {
     try {
-      print('👤 Fetching employee by ID: $id');
-      final response = await ApiService.get('${AppConstants.employeeEndpoint}/$id');
-
-      if (response.statusCode == 200) {
-        print('✅ Employee retrieved');
-        return Employee.fromJson(json.decode(response.body));
-      } else {
-        ApiService.handleError(response);
-        throw Exception('Failed to load employee');
-      }
-    } catch (e) {
-      print('💥 Error fetching employee: $e');
-      throw Exception('Error fetching employee: $e');
-    }
-  }
-
-  /// Get employee by email - Token from LocalStorage
-  Future<Employee> getEmployeeByEmail(String email) async {
-    try {
-      print('📧 Fetching employee by email: $email');
-      final response = await ApiService.get('${AppConstants.employeeEndpoint}/email/$email');
-
-      if (response.statusCode == 200) {
-        print('✅ Employee retrieved');
-        return Employee.fromJson(json.decode(response.body));
-      } else {
-        ApiService.handleError(response);
-        throw Exception('Failed to load employee');
-      }
-    } catch (e) {
-      print('💥 Error fetching employee: $e');
-      throw Exception('Error fetching employee: $e');
-    }
-  }
-
-  /// Add new employee - Token from LocalStorage
-  Future<Map<String, String>> addEmployee(
-      User user,
-      Employee employee,
-      PickedImageData? imageData,
-      ) async {
-    try {
-      if (imageData == null) {
-        throw Exception('Photo is required');
-      }
-
-      print('➕ Adding new employee: ${employee.name}');
-
-      final response = await ApiService.multipartPostEmployee(
-        '${AppConstants.employeeEndpoint}/',
-        json.encode(user.toJson()),
-        json.encode(employee.toJson()),
-        imageData,
+      final response = await http.get(
+        Uri.parse('$baseUrl/$id'),
+        headers: _getHeaders(),
       );
 
-      final responseBody = await response.stream.bytesToString();
-
       if (response.statusCode == 200) {
-        print('✅ Employee added successfully');
-        return Map<String, String>.from(json.decode(responseBody));
-      } else {
-        print('❌ Failed to add employee: ${response.statusCode}');
-        print('Error: $responseBody');
-        throw Exception('Failed to add employee: ${response.statusCode}');
+        return Employee.fromJson(jsonDecode(response.body));
       }
+      return null;
     } catch (e) {
-      print('💥 Error adding employee: $e');
-      throw Exception('Error adding employee: $e');
+      print('Get employee by id error: $e');
+      return null;
     }
   }
 
-  /// Update employee - Token from LocalStorage
-  Future<Employee> updateEmployee(Employee employee, PickedImageData? imageData) async {
+  static Future<Employee?> getEmployeeByEmail(String email) async {
     try {
-      if (imageData == null) {
-        throw Exception('Photo is required');
-      }
-
-      print('✏️ Updating employee: ${employee.name}');
-
-      final response = await ApiService.multipartPutEmployee(
-        '${AppConstants.employeeEndpoint}/',
-        json.encode(employee.toJson()),
-        imageData,
+      final response = await http.get(
+        Uri.parse('$baseUrl/email/$email'),
+        headers: _getHeaders(),
       );
 
-      final responseBody = await response.stream.bytesToString();
-
       if (response.statusCode == 200) {
-        print('✅ Employee updated successfully');
-        return Employee.fromJson(json.decode(responseBody));
-      } else {
-        print('❌ Failed to update employee: ${response.statusCode}');
-        print('Error: $responseBody');
-        throw Exception('Failed to update employee: ${response.statusCode}');
+        return Employee.fromJson(jsonDecode(response.body));
       }
+      return null;
     } catch (e) {
-      print('💥 Error updating employee: $e');
-      throw Exception('Error updating employee: $e');
+      print('Get employee by email error: $e');
+      return null;
     }
   }
 
-  /// Delete employee - Token from LocalStorage
-  /// FIXED VERSION with better error handling
-  Future<bool> deleteEmployee(int id) async {
+  static Future<List<Employee>> getEmployeesByRole(String role) async {
     try {
-      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      print('🗑️ DELETE EMPLOYEE REQUEST');
-      print('Employee ID: $id');
+      final response = await http.get(
+        Uri.parse('$baseUrl?role=$role'),
+        headers: _getHeaders(),
+      );
 
-      final response = await ApiService.delete('${AppConstants.employeeEndpoint}/$id');
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => Employee.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      print('Get employees by role error: $e');
+      return [];
+    }
+  }
 
-      print('Response Status: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  static Future<bool> createEmployee(
+      User user, Employee employee, XFile? photo) async {
+    try {
+      var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/'));
+      request.headers.addAll(_getMultipartHeaders());
 
-      // Check for successful delete (204 No Content or 200 OK)
-      if (response.statusCode == 204 || response.statusCode == 200) {
-        print('✅ Employee deleted successfully');
+      request.fields['user'] = jsonEncode(user.toJson());
+      request.fields['employee'] = jsonEncode(employee.toJson());
+
+      if (photo != null) {
+        if (kIsWeb) {
+          final bytes = await photo.readAsBytes();
+          request.files.add(http.MultipartFile.fromBytes(
+            'photo',
+            bytes,
+            filename: photo.name,
+          ));
+        } else {
+          request.files.add(
+            await http.MultipartFile.fromPath('photo', photo.path),
+          );
+        }
+      }
+
+      var response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        print('Employee created successfully');
         return true;
       } else {
-        print('❌ Failed to delete employee');
-        print('Status Code: ${response.statusCode}');
-        print('Response: ${response.body}');
-        ApiService.handleError(response);
+        print('Failed to create employee. Status: ${response.statusCode}');
+        print('Response: $responseBody');
         return false;
       }
     } catch (e) {
-      print('💥 EXCEPTION while deleting employee: $e');
-      print('Stack trace: ${StackTrace.current}');
+      print('Create employee error: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> updateEmployee(Employee employee, XFile? photo) async {
+    // Ensure employee has an ID for update
+    if (employee.id == null) {
+      print('Error: Employee ID is null, cannot update.');
+      return false;
+    }
+
+    try {
+      // **FIX:** The PUT request URL should be '$baseUrl/' as per your backend
+      var request = http.MultipartRequest('PUT', Uri.parse('$baseUrl/'));
+      request.headers.addAll(_getMultipartHeaders());
+
+      request.fields['employee'] = jsonEncode(employee.toJson());
+
+      if (photo != null) {
+        if (kIsWeb) {
+          final bytes = await photo.readAsBytes();
+          request.files.add(http.MultipartFile.fromBytes(
+            'photo',
+            bytes,
+            filename: photo.name,
+          ));
+        } else {
+          request.files.add(
+            await http.MultipartFile.fromPath('photo', photo.path),
+          );
+        }
+      }
+
+      var response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        print('Employee updated successfully');
+        return true;
+      } else {
+        print('Failed to update employee. Status: ${response.statusCode}');
+        print('Response: $responseBody');
+        return false;
+      }
+    } catch (e) {
+      print('Update employee error: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> deleteEmployee(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/$id'),
+        headers: _getHeaders(),
+      );
+
+      // Check for success status codes (200, 204)
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print('Employee deleted successfully');
+        return true;
+      } else {
+        print('Failed to delete employee. Status: ${response.statusCode}');
+        print('Response: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Delete employee error: $e');
       return false;
     }
   }

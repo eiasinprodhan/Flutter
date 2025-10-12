@@ -1,6 +1,6 @@
 class AuthResponse {
-  final String? token;
-  final String? message;
+  String? token;
+  String? message;
 
   AuthResponse({this.token, this.message});
 

@@ -1,4 +1,4 @@
-package com.eiasin.crems.crems;
+package com.eiasin.crems;
 
 import io.flutter.embedding.android.FlutterActivity;
 
