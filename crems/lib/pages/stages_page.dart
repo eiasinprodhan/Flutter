@@ -1,29 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/building.dart';
 import '../models/floor.dart';
-import '../services/building_service.dart';
+import '../models/stage.dart';
 import '../services/floor_service.dart';
-import 'floor_form_page.dart';
+import '../services/stage_service.dart';
+import 'stage_form_page.dart';
 
-class FloorsPage extends StatefulWidget {
-  const FloorsPage({Key? key}) : super(key: key);
+class StagesPage extends StatefulWidget {
+  const StagesPage({Key? key}) : super(key: key);
 
   @override
-  State<FloorsPage> createState() => _FloorsPageState();
+  State<StagesPage> createState() => _StagesPageState();
 }
 
-class _FloorsPageState extends State<FloorsPage> {
-  // State for data, loading, and errors
-  List<Floor> _allFloors = [];
-  List<Floor> _filteredFloors = [];
+class _StagesPageState extends State<StagesPage> {
+  List<Stage> _allStages = [];
+  List<Stage> _filteredStages = [];
   bool _isLoading = true;
   String? _errorMessage;
 
-  // State for filters
   final TextEditingController _searchController = TextEditingController();
-  List<Building> _buildingsForFilter = [];
-  Building? _selectedBuilding;
+  List<Floor> _floorsForFilter = [];
+  Floor? _selectedFloor;
 
   @override
   void initState() {
@@ -46,17 +44,16 @@ class _FloorsPageState extends State<FloorsPage> {
     });
 
     try {
-      // Fetch floors and buildings in parallel
       final results = await Future.wait([
+        StageService.getAllStages(),
         FloorService.getAllFloors(),
-        BuildingService.getAllBuildings(),
       ]);
 
       if (mounted) {
         setState(() {
-          _allFloors = results[0] as List<Floor>;
-          _filteredFloors = _allFloors;
-          _buildingsForFilter = results[1] as List<Building>;
+          _allStages = results[0] as List<Stage>;
+          _filteredStages = _allStages;
+          _floorsForFilter = results[1] as List<Floor>;
           _isLoading = false;
         });
       }
@@ -73,43 +70,41 @@ class _FloorsPageState extends State<FloorsPage> {
   void _applyFilters() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredFloors = _allFloors.where((floor) {
-        // Search filter
-        final nameMatches = floor.name?.toLowerCase().contains(query) ?? false;
-        final buildingNameMatches = floor.building?.name?.toLowerCase().contains(query) ?? false;
-
-        // Building filter
-        final buildingMatches = _selectedBuilding == null || floor.building?.id == _selectedBuilding!.id;
-
-        return (nameMatches || buildingNameMatches) && buildingMatches;
+      _filteredStages = _allStages.where((stage) {
+        final nameMatches = stage.name?.toLowerCase().contains(query) ?? false;
+        final floorMatches =
+            _selectedFloor == null || stage.floor?.id == _selectedFloor!.id;
+        return nameMatches && floorMatches;
       }).toList();
     });
   }
 
-  void _filterByBuilding(Building? building) {
+  void _filterByFloor(Floor? floor) {
     setState(() {
-      _selectedBuilding = building;
+      _selectedFloor = floor;
       _applyFilters();
     });
   }
 
-  Future<void> _deleteFloor(int id, String name) async {
+  Future<void> _deleteStage(int id, String name) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => _buildDeleteDialog(name),
     );
 
     if (confirmed == true && mounted) {
-      final success = await FloorService.deleteFloor(id);
+      final success = await StageService.deleteStage(id);
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            _buildStatusSnackBar('Floor deleted successfully', Icons.check_circle, Colors.green),
+            _buildStatusSnackBar(
+                'Stage deleted successfully', Icons.check_circle, Colors.green),
           );
           _loadInitialData();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            _buildStatusSnackBar('Failed to delete floor', Icons.error, Colors.red),
+            _buildStatusSnackBar(
+                'Failed to delete stage', Icons.error, Colors.red),
           );
         }
       }
@@ -120,17 +115,7 @@ class _FloorsPageState extends State<FloorsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Floors'),
-            if (!_isLoading)
-              Text(
-                '${_filteredFloors.length} floor${_filteredFloors.length != 1 ? 's' : ''} found',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
-              ),
-          ],
-        ),
+        title: const Text('Construction Stages'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -143,7 +128,7 @@ class _FloorsPageState extends State<FloorsPage> {
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const FloorFormPage()),
+            MaterialPageRoute(builder: (context) => const StageFormPage()),
           );
           if (result == true) {
             _loadInitialData();
@@ -151,7 +136,7 @@ class _FloorsPageState extends State<FloorsPage> {
         },
         backgroundColor: const Color(0xFF00BFA5),
         icon: const Icon(Icons.add),
-        label: const Text('New Floor'),
+        label: const Text('New Stage'),
       ),
       body: Column(
         children: [
@@ -161,13 +146,13 @@ class _FloorsPageState extends State<FloorsPage> {
                 ? const Center(child: CircularProgressIndicator())
                 : _errorMessage != null
                 ? _buildErrorWidget()
-                : _filteredFloors.isEmpty
+                : _filteredStages.isEmpty
                 ? _buildEmptyStateWidget()
                 : ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: _filteredFloors.length,
+              itemCount: _filteredStages.length,
               itemBuilder: (context, index) {
-                return _buildFloorCard(_filteredFloors[index]);
+                return _buildStageCard(_filteredStages[index]);
               },
             ),
           ),
@@ -179,56 +164,47 @@ class _FloorsPageState extends State<FloorsPage> {
   Widget _buildSearchAndFilterBar() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
           TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              hintText: 'Search by floor or building name...',
-              prefixIcon: const Icon(Icons.search, color: Color(0xFF1A237E)),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () => _searchController.clear(),
-              )
-                  : null,
+              hintText: 'Search by stage name...',
+              prefixIcon: const Icon(Icons.search),
+              border:
+              OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
           const SizedBox(height: 12),
-          DropdownButtonFormField<Building?>(
-            value: _selectedBuilding,
+          DropdownButtonFormField<Floor?>(
+            value: _selectedFloor,
             decoration: InputDecoration(
-              labelText: 'Filter by Building',
-              prefixIcon: const Icon(Icons.business_rounded, color: Color(0xFF00BFA5)),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              labelText: 'Filter by Floor',
+              prefixIcon: const Icon(Icons.layers_outlined),
+              border:
+              OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
             items: [
-              const DropdownMenuItem<Building?>(
-                value: null,
-                child: Text('All Buildings'),
-              ),
-              ..._buildingsForFilter.map((building) => DropdownMenuItem(
-                value: building,
-                child: Text(building.name ?? 'Unnamed Building'),
+              const DropdownMenuItem<Floor?>(
+                  value: null, child: Text('All Floors')),
+              ..._floorsForFilter.map((floor) => DropdownMenuItem(
+                value: floor,
+                child: Text(
+                    '${floor.name ?? 'N/A'} (${floor.building?.name ?? '...'})'),
               )),
             ],
-            onChanged: (value) => _filterByBuilding(value),
+            onChanged: (value) => _filterByFloor(value),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFloorCard(Floor floor) {
-    final daysRemaining = floor.expectedEndDate?.difference(DateTime.now()).inDays ?? 0;
-    final isOverdue = daysRemaining < 0 && floor.expectedEndDate != null;
-
+  Widget _buildStageCard(Stage stage) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -237,29 +213,23 @@ class _FloorsPageState extends State<FloorsPage> {
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(Icons.layers_outlined, color: Theme.of(context).primaryColor, size: 28),
-                ),
+                const Icon(Icons.construction,
+                    color: Color(0xFF1A237E), size: 32),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        floor.name ?? 'N/A',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A237E)),
-                      ),
+                      Text(stage.name ?? 'N/A',
+                          style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1A237E))),
                       const SizedBox(height: 4),
-                      if (floor.building != null)
-                        Text(
-                          'Building: ${floor.building!.name}',
-                          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                        ),
+                      Text(
+                        'Floor: ${stage.floor?.name ?? 'N/A'} | Building: ${stage.floor?.building?.name ?? 'N/A'}',
+                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      ),
                     ],
                   ),
                 ),
@@ -267,24 +237,23 @@ class _FloorsPageState extends State<FloorsPage> {
                   onSelected: (value) {
                     if (value == 'edit') {
                       Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => FloorFormPage(floor: floor)),
-                      ).then((result) {
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  StageFormPage(stage: stage)))
+                          .then((result) {
                         if (result == true) _loadInitialData();
                       });
                     } else if (value == 'delete') {
-                      _deleteFloor(floor.id!, floor.name!);
+                      _deleteStage(stage.id!, stage.name!);
                     }
                   },
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                    const PopupMenuItem<String>(
-                      value: 'edit',
-                      child: ListTile(leading: Icon(Icons.edit_outlined), title: Text('Edit')),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'delete',
-                      child: ListTile(leading: Icon(Icons.delete_outline, color: Colors.red), title: Text('Delete', style: TextStyle(color: Colors.red))),
-                    ),
+                  itemBuilder: (ctx) => [
+                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    const PopupMenuItem(
+                        value: 'delete',
+                        child:
+                        Text('Delete', style: TextStyle(color: Colors.red))),
                   ],
                 ),
               ],
@@ -293,13 +262,14 @@ class _FloorsPageState extends State<FloorsPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildInfoChip(Icons.business_outlined, floor.building?.type?.replaceAll('_', ' ') ?? 'N/A'),
-                if (floor.expectedEndDate != null)
-                  _buildInfoChip(
-                    isOverdue ? Icons.warning_amber_rounded : Icons.calendar_today_outlined,
-                    isOverdue ? 'Overdue by ${daysRemaining.abs()} days' : '$daysRemaining days remaining',
-                    color: isOverdue ? Colors.red : Colors.green,
-                  ),
+                _buildInfoChip(
+                    Icons.calendar_today,
+                    'Start: ${stage.startDate != null ? DateFormat.yMMMd().format(stage.startDate!) : 'N/A'}'),
+                _buildInfoChip(Icons.event,
+                    'End: ${stage.endDate != null ? DateFormat.yMMMd().format(stage.endDate!) : 'N/A'}'),
+                _buildInfoChip(
+                    Icons.groups, '${stage.labours?.length ?? 0} Labours',
+                    color: const Color(0xFF00BFA5)),
               ],
             )
           ],
@@ -322,14 +292,18 @@ class _FloorsPageState extends State<FloorsPage> {
           const SizedBox(width: 6),
           Text(
             label,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color ?? Colors.grey[700]),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color ?? Colors.grey[700],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDeleteDialog(String name) {
+  AlertDialog _buildDeleteDialog(String name) {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
@@ -347,7 +321,9 @@ class _FloorsPageState extends State<FloorsPage> {
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(context, true),
-          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B6B)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFF6B6B),
+          ),
           child: const Text('Delete'),
         ),
       ],
@@ -356,7 +332,8 @@ class _FloorsPageState extends State<FloorsPage> {
 
   SnackBar _buildStatusSnackBar(String message, IconData icon, Color color) {
     return SnackBar(
-      content: Row(children: [Icon(icon, color: Colors.white), const SizedBox(width: 12), Text(message)]),
+      content:
+      Row(children: [Icon(icon, color: Colors.white), const SizedBox(width: 12), Text(message)]),
       backgroundColor: color,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -372,13 +349,16 @@ class _FloorsPageState extends State<FloorsPage> {
           children: [
             Icon(Icons.error_outline, size: 80, color: Colors.red[300]),
             const SizedBox(height: 16),
-            Text(_errorMessage!, style: TextStyle(color: Colors.red[700], fontSize: 16), textAlign: TextAlign.center),
+            Text(_errorMessage!,
+                style: TextStyle(color: Colors.red[700], fontSize: 16),
+                textAlign: TextAlign.center),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: _loadInitialData,
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A237E)),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1A237E)),
             ),
           ],
         ),
@@ -394,24 +374,31 @@ class _FloorsPageState extends State<FloorsPage> {
           Icon(Icons.layers_clear_outlined, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            _allFloors.isEmpty ? 'No floors found' : 'No matching floors',
-            style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.w500),
+            _allStages.isEmpty ? 'No stages found' : 'No matching stages',
+            style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 8),
           Text(
-            _allFloors.isEmpty ? 'Add your first floor to get started' : 'Try adjusting your search or filter',
+            _allStages.isEmpty
+                ? 'Add your first stage to get started'
+                : 'Try adjusting your search or filter',
             style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
-          if (_allFloors.isNotEmpty && (_searchController.text.isNotEmpty || _selectedBuilding != null)) ...[
+          if (_allStages.isNotEmpty &&
+              (_searchController.text.isNotEmpty || _selectedFloor != null)) ...[
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () {
                 _searchController.clear();
-                _filterByBuilding(null);
+                _filterByFloor(null);
               },
               icon: const Icon(Icons.clear_all),
               label: const Text('Clear Filters'),
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A237E)),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1A237E)),
             ),
           ],
         ],

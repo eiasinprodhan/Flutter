@@ -89,7 +89,9 @@ class EmployeeService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl?role=$role'),
-        headers: _getHeaders(),
+        headers: {
+          'Content-Type': 'application/json'
+        }
       );
 
       if (response.statusCode == 200) {

@@ -14,8 +14,7 @@ class BuildingService {
       final response = await http.get(
         Uri.parse('$baseUrl/'),
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${AuthService.token}',
+          'Content-Type': 'application/json'
         },
       );
 

@@ -18,16 +18,10 @@ class _BuildingsPageState extends State<BuildingsPage> {
   final TextEditingController _searchController = TextEditingController();
   String? selectedType;
 
-  // Building type options
   final List<String> buildingTypes = [
-    'All',
-    'RESIDENTIAL',
-    'COMMERCIAL',
-    'MIXED_USE',
-    'INDUSTRIAL',
+    'All', 'RESIDENTIAL', 'COMMERCIAL', 'MIXED_USE', 'INDUSTRIAL',
   ];
 
-  // Type colors
   final Map<String, Color> typeColors = {
     'RESIDENTIAL': const Color(0xFF4CAF50),
     'COMMERCIAL': const Color(0xFF1A237E),
@@ -35,12 +29,11 @@ class _BuildingsPageState extends State<BuildingsPage> {
     'INDUSTRIAL': const Color(0xFFFF6B6B),
   };
 
-  // Type icons
   final Map<String, IconData> typeIcons = {
-    'RESIDENTIAL': Icons.home,
-    'COMMERCIAL': Icons.business,
-    'MIXED_USE': Icons.location_city,
-    'INDUSTRIAL': Icons.factory,
+    'RESIDENTIAL': Icons.home_rounded,
+    'COMMERCIAL': Icons.business_rounded,
+    'MIXED_USE': Icons.location_city_rounded,
+    'INDUSTRIAL': Icons.factory_rounded,
   };
 
   @override
@@ -60,13 +53,11 @@ class _BuildingsPageState extends State<BuildingsPage> {
     final query = _searchController.text.toLowerCase();
     setState(() {
       filteredBuildings = buildings.where((building) {
-        // Apply search filter
-        final matchesSearch = building.name!.toLowerCase().contains(query) ||
-            (building.location ?? '').toLowerCase().contains(query) ||
-            (building.siteManager?.name ?? '').toLowerCase().contains(query) ||
-            (building.project?.name ?? '').toLowerCase().contains(query);
+        final matchesSearch = (building.name?.toLowerCase() ?? '').contains(query) ||
+            (building.location?.toLowerCase() ?? '').contains(query) ||
+            (building.siteManager?.name?.toLowerCase() ?? '').contains(query) ||
+            (building.project?.name?.toLowerCase() ?? '').contains(query);
 
-        // Apply type filter
         final matchesType = selectedType == null ||
             selectedType == 'All' ||
             building.type == selectedType;
@@ -84,23 +75,24 @@ class _BuildingsPageState extends State<BuildingsPage> {
   }
 
   Future<void> _loadBuildings() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = null;
-    });
-
+    if(!mounted) return;
+    setState(() => isLoading = true);
     try {
       final fetchedBuildings = await BuildingService.getAllBuildings();
-      setState(() {
-        buildings = fetchedBuildings;
-        filteredBuildings = fetchedBuildings;
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          buildings = fetchedBuildings;
+          filteredBuildings = fetchedBuildings;
+          isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        errorMessage = 'Failed to load buildings: $e';
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          errorMessage = 'Failed to load buildings: $e';
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -118,65 +110,36 @@ class _BuildingsPageState extends State<BuildingsPage> {
         ),
         content: Text('Are you sure you want to delete "$name"?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF6B6B),
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B6B)),
             child: const Text('Delete'),
           ),
         ],
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && mounted) {
       final success = await BuildingService.deleteBuilding(id);
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: const [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 12),
-                Text('Building deleted successfully'),
-              ],
-            ),
-            backgroundColor: const Color(0xFF4CAF50),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        );
-        _loadBuildings();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: const [
-                Icon(Icons.error_outline, color: Colors.white),
-                SizedBox(width: 12),
-                Expanded(child: Text('Failed to delete building')),
-              ],
-            ),
-            backgroundColor: const Color(0xFFFF6B6B),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        );
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Building deleted successfully'), backgroundColor: Colors.green),
+          );
+          _loadBuildings();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to delete building'), backgroundColor: Colors.red),
+          );
+        }
       }
     }
   }
 
   String _getImageUrl(String? imagePath) {
-    if (imagePath == null || imagePath.isEmpty) {
-      return '';
-    }
-    if (imagePath.startsWith('http')) {
-      return imagePath;
-    }
+    if (imagePath == null || imagePath.isEmpty) return '';
+    if (imagePath.startsWith('http')) return imagePath;
     return 'http://localhost:8080/images/buildings/$imagePath';
   }
 
@@ -188,10 +151,11 @@ class _BuildingsPageState extends State<BuildingsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Buildings'),
-            Text(
-              '${filteredBuildings.length} building${filteredBuildings.length != 1 ? 's' : ''}',
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
-            ),
+            if (!isLoading)
+              Text(
+                '${filteredBuildings.length} building${filteredBuildings.length != 1 ? 's' : ''}',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+              ),
           ],
         ),
         actions: [
@@ -206,9 +170,7 @@ class _BuildingsPageState extends State<BuildingsPage> {
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const BuildingFormPage(),
-            ),
+            MaterialPageRoute(builder: (context) => const BuildingFormPage()),
           );
           if (result == true) {
             _loadBuildings();
@@ -220,193 +182,64 @@ class _BuildingsPageState extends State<BuildingsPage> {
       ),
       body: Column(
         children: [
-          // Search Bar
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            color: Colors.white,
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search buildings by name, location...',
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF1A237E)),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                  },
-                )
-                    : null,
-                filled: true,
-                fillColor: const Color(0xFFF5F7FA),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              ),
-            ),
-          ),
-
-          // Type Filter Chips
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: Colors.white,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.filter_list, size: 18, color: Color(0xFF1A237E)),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Filter by Type:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: Color(0xFF1A237E),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: buildingTypes.map((type) {
-                      final isSelected = selectedType == type ||
-                          (selectedType == null && type == 'All');
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: FilterChip(
-                          label: Text(type.replaceAll('_', ' ')),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            _filterByType(type == 'All' ? null : type);
-                          },
-                          backgroundColor: Colors.white,
-                          selectedColor: _getTypeColor(type).withOpacity(0.2),
-                          checkmarkColor: _getTypeColor(type),
-                          labelStyle: TextStyle(
-                            color: isSelected
-                                ? _getTypeColor(type)
-                                : Colors.grey[700],
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            fontSize: 12,
-                          ),
-                          side: BorderSide(
-                            color: isSelected
-                                ? _getTypeColor(type)
-                                : Colors.grey.shade300,
-                            width: isSelected ? 2 : 1,
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Buildings List
+          _buildSearchAndFilterBar(),
           Expanded(
             child: isLoading
-                ? const Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFF00BFA5),
-              ),
-            )
+                ? const Center(child: CircularProgressIndicator())
                 : errorMessage != null
-                ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 80,
-                      color: Colors.red[300],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      errorMessage!,
-                      style: TextStyle(
-                        color: Colors.red[700],
-                        fontSize: 16,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: _loadBuildings,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Retry'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1A237E),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
+                ? Center(child: Text(errorMessage!))
                 : filteredBuildings.isEmpty
-                ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.business,
-                    size: 80,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    buildings.isEmpty
-                        ? 'No buildings found'
-                        : 'No matching buildings',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    buildings.isEmpty
-                        ? 'Add your first building to get started'
-                        : 'Try adjusting your search or filters',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                  if (buildings.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        _searchController.clear();
-                        _filterByType(null);
-                      },
-                      icon: const Icon(Icons.clear_all),
-                      label: const Text('Clear Filters'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1A237E),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            )
+                ? const Center(child: Text('No buildings found.'))
                 : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: filteredBuildings.length,
               itemBuilder: (context, index) {
-                final building = filteredBuildings[index];
-                return _buildBuildingCard(building);
+                return _buildBuildingCard(filteredBuildings[index]);
               },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchAndFilterBar() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      color: Colors.white,
+      child: Column(
+        children: [
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Search buildings by name, location...',
+              prefixIcon: const Icon(Icons.search, color: Color(0xFF1A237E)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: buildingTypes.map((type) {
+                final isSelected = selectedType == type || (selectedType == null && type == 'All');
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: FilterChip(
+                    label: Text(type.replaceAll('_', ' ')),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      _filterByType(type == 'All' ? null : type);
+                    },
+                    selectedColor: _getTypeColor(type).withOpacity(0.2),
+                    checkmarkColor: _getTypeColor(type),
+                    labelStyle: TextStyle(
+                      color: isSelected ? _getTypeColor(type) : Colors.grey[700],
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ),
         ],
@@ -421,217 +254,134 @@ class _BuildingsPageState extends State<BuildingsPage> {
   Widget _buildBuildingCard(Building building) {
     final imageUrl = _getImageUrl(building.photo);
 
-    return Container(
+    return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => BuildingFormPage(building: building),
-              ),
-            );
-            if (result == true) {
-              _loadBuildings();
-            }
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      elevation: 4,
+      shadowColor: Colors.black.withOpacity(0.1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                // Header Row
-                Row(
-                  children: [
-                    // Icon Container
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            _getTypeColor(building.type ?? '').withOpacity(0.8),
-                            _getTypeColor(building.type ?? ''),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        typeIcons[building.type] ?? Icons.business,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-
-                    // Name and Type
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            building.name ?? 'N/A',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1A237E),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: _getTypeColor(building.type ?? '')
-                                  .withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              (building.type ?? 'N/A').replaceAll('_', ' '),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: _getTypeColor(building.type ?? ''),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Action Buttons
-                    Column(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1A237E).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.edit, size: 20),
-                            color: const Color(0xFF1A237E),
-                            onPressed: () async {
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      BuildingFormPage(building: building),
-                                ),
-                              );
-                              if (result == true) {
-                                _loadBuildings();
-                              }
-                            },
-                            tooltip: 'Edit',
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFF6B6B).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.delete, size: 20),
-                            color: const Color(0xFFFF6B6B),
-                            onPressed: () =>
-                                _deleteBuilding(building.id!, building.name!),
-                            tooltip: 'Delete',
-                          ),
-                        ),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        _getTypeColor(building.type ?? '').withOpacity(0.8),
+                        _getTypeColor(building.type ?? ''),
                       ],
                     ),
-                  ],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    typeIcons[building.type] ?? Icons.business,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                 ),
-                const SizedBox(height: 16),
-
-                // Location
-                if (building.location != null && building.location!.isNotEmpty)
-                  Row(
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.location_on_outlined,
-                          size: 16, color: Colors.grey[600]),
-                      const SizedBox(width: 6),
-                      Expanded(
+                      Text(
+                        building.name ?? 'N/A',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A237E)),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _getTypeColor(building.type ?? '').withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
                         child: Text(
-                          building.location!,
+                          (building.type ?? 'N/A').replaceAll('_', ' '),
                           style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
+                            fontSize: 11,
+                            color: _getTypeColor(building.type ?? ''),
+                            fontWeight: FontWeight.w600,
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                const SizedBox(height: 16),
-
-                // Info Grid
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildInfoCard(
-                        Icons.layers,
-                        'Floors',
-                        '${building.floorCount ?? 0}',
-                        const Color(0xFF00BFA5),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildInfoCard(
-                        Icons.meeting_room,
-                        'Units',
-                        '${building.unitCount ?? 0}',
-                        const Color(0xFF1A237E),
-                      ),
-                    ),
-                  ],
                 ),
-                const SizedBox(height: 12),
-
-                // Additional Info
-                Row(
-                  children: [
-                    if (building.siteManager != null)
-                      Expanded(
-                        child: _buildInfoCard(
-                          Icons.person_outline,
-                          'Site Manager',
-                          building.siteManager!.name ?? 'N/A',
-                          const Color(0xFFFFB74D),
-                        ),
-                      ),
-                    if (building.siteManager != null && building.project != null)
-                      const SizedBox(width: 12),
-                    if (building.project != null)
-                      Expanded(
-                        child: _buildInfoCard(
-                          Icons.apartment,
-                          'Project',
-                          building.project!.name ?? 'N/A',
-                          const Color(0xFF4CAF50),
-                        ),
-                      ),
+                // **FIX: Replaced column of buttons with a PopupMenuButton**
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => BuildingFormPage(building: building)),
+                      ).then((result) {
+                        if (result == true) {
+                          _loadBuildings();
+                        }
+                      });
+                    } else if (value == 'delete') {
+                      _deleteBuilding(building.id!, building.name!);
+                    }
+                  },
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'edit',
+                      child: ListTile(leading: Icon(Icons.edit_outlined), title: Text('Edit')),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'delete',
+                      child: ListTile(leading: Icon(Icons.delete_outline, color: Colors.red), title: Text('Delete', style: TextStyle(color: Colors.red))),
+                    ),
                   ],
+                  icon: const Icon(Icons.more_vert),
                 ),
               ],
             ),
-          ),
+            const Divider(height: 24),
+            if (building.location != null && building.location!.isNotEmpty) ...[
+              Row(
+                children: [
+                  Icon(Icons.location_on_outlined, size: 16, color: Colors.grey[600]),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      building.location!,
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+            Row(
+              children: [
+                Expanded(child: _buildInfoCard(Icons.layers, 'Floors', '${building.floorCount ?? 0}', const Color(0xFF00BFA5))),
+                const SizedBox(width: 12),
+                Expanded(child: _buildInfoCard(Icons.meeting_room, 'Units', '${building.unitCount ?? 0}', const Color(0xFF1A237E))),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                if (building.siteManager != null)
+                  Expanded(
+                    child: _buildInfoCard(Icons.person_outline, 'Site Manager', building.siteManager!.name ?? 'N/A', const Color(0xFFFFB74D)),
+                  ),
+                if (building.siteManager != null && building.project != null)
+                  const SizedBox(width: 12),
+                if (building.project != null)
+                  Expanded(
+                    child: _buildInfoCard(Icons.apartment, 'Project', building.project!.name ?? 'N/A', const Color(0xFF4CAF50)),
+                  ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -654,11 +404,7 @@ class _BuildingsPageState extends State<BuildingsPage> {
               Expanded(
                 child: Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w500),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -667,11 +413,7 @@ class _BuildingsPageState extends State<BuildingsPage> {
           const SizedBox(height: 6),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

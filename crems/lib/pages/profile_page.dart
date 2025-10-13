@@ -1,18 +1,24 @@
+import 'package:crems/models/unit.dart';
+import 'package:crems/pages/units_page.dart';
+import 'package:crems/services/unit_service.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Make sure you have the intl package
+import 'package:intl/intl.dart';
 import '../models/building.dart';
 import '../models/employee.dart';
 import '../models/floor.dart';
 import '../models/project.dart';
+import '../models/stage.dart';
 import '../services/auth_service.dart';
 import '../services/building_service.dart';
 import '../services/employee_service.dart';
 import '../services/floor_service.dart';
 import '../services/project_service.dart';
+import '../services/stage_service.dart';
 import 'employees_page.dart';
 import 'projects_page.dart';
 import 'buildings_page.dart';
 import 'floors_page.dart';
+import 'stages_page.dart';
 import 'home_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -48,15 +54,28 @@ class _ProfilePageState extends State<ProfilePage>
         BuildingService.getAllBuildings(),
         EmployeeService.getAllEmployees(),
         FloorService.getAllFloors(),
+        UnitService.getAllUnits(),
+        StageService.getAllStages(),
       ]);
 
-      if (!mounted) return {'projects': 0, 'buildings': 0, 'employees': 0, 'floors': 0};
+      if (!mounted) {
+        return {
+          'projects': 0,
+          'buildings': 0,
+          'employees': 0,
+          'floors': 0,
+          'units': 0,
+          'stages': 0
+        };
+      }
 
       return {
         'projects': (results[0] as List<Project>).length,
         'buildings': (results[1] as List<Building>).length,
         'employees': (results[2] as List<Employee>).length,
         'floors': (results[3] as List<Floor>).length,
+        'units': (results[4] as List<Unit>).length,
+        'stages': (results[5] as List<Stage>).length,
       };
     } catch (e) {
       print("Failed to load dashboard data: $e");
@@ -92,218 +111,266 @@ class _ProfilePageState extends State<ProfilePage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
-        elevation: 0,
-        actions: [
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                onPressed: _showNotifications,
-              ),
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFF6B6B),
-                    shape: BoxShape.circle,
+    return FutureBuilder<Map<String, int>>(
+      future: _dashboardData,
+      builder: (context, snapshot) {
+        // Default counts for loading state
+        final counts = snapshot.data ??
+            {
+              'projects': 0,
+              'buildings': 0,
+              'employees': 0,
+              'floors': 0,
+              'units': 0,
+              'stages': 0
+            };
+        final projectCount = counts['projects']!;
+        final buildingCount = counts['buildings']!;
+        final employeeCount = counts['employees']!;
+        final floorCount = counts['floors']!;
+        final unitCount = counts['units']!;
+        final stageCount = counts['stages']!;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Dashboard',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            elevation: 0,
+            actions: [
+              Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    onPressed: _showNotifications,
                   ),
-                  child: const Text('3', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                ),
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFF6B6B),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Text('3',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
               ),
+              IconButton(
+                icon: const Icon(Icons.logout_rounded),
+                onPressed: _logout,
+                tooltip: 'Logout',
+              ),
+              const SizedBox(width: 8),
             ],
           ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            onPressed: _logout,
-            tooltip: 'Logout',
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      drawer: Drawer(
-        child: FutureBuilder<Map<String, int>>(
-          future: _dashboardData,
-          builder: (context, snapshot) {
-            final counts = snapshot.data ?? {'projects': 0, 'buildings': 0, 'employees': 0, 'floors': 0};
-            return _buildDrawer(counts['projects']!, counts['buildings']!, counts['employees']!, counts['floors']!);
-          },
-        ),
-      ),
-      body: FutureBuilder<Map<String, int>>(
-        future: _dashboardData,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return _buildErrorWidget();
-          }
-
-          final counts = snapshot.data!;
-          _animationController.forward();
-
-          return RefreshIndicator(
+          drawer: _buildDrawer(
+              projectCount, buildingCount, employeeCount, floorCount, stageCount),
+          body: RefreshIndicator(
             onRefresh: () async {
               setState(() {
                 _dashboardData = _loadDashboardData();
               });
             },
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildWelcomeCard(),
-                    const SizedBox(height: 24),
-                    _buildStatsGrid(counts['projects']!, counts['buildings']!, counts['employees']!),
-                    const SizedBox(height: 24),
-                    _buildQuickActions(),
-                    const SizedBox(height: 24),
-                    _buildRecentActivity(),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
+            child: _buildBody(snapshot),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(AsyncSnapshot<Map<String, int>> snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (snapshot.hasError) {
+      return _buildErrorWidget();
+    }
+
+    final counts = snapshot.data!;
+    _animationController.forward();
+
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildWelcomeCard(),
+            const SizedBox(height: 24),
+            _buildStatsGrid(
+                counts['projects']!, counts['buildings']!, counts['employees']!),
+            const SizedBox(height: 24),
+            _buildQuickActions(),
+            const SizedBox(height: 24),
+            _buildRecentActivity(),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildDrawer(int projectCount, int buildingCount, int employeeCount, int floorCount) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF1A237E),
-            const Color(0xFF1A237E).withOpacity(0.85),
-            const Color(0xFF00BFA5).withOpacity(0.3),
-          ],
+  Widget _buildDrawer(int projectCount, int buildingCount, int employeeCount,
+      int floorCount, int stageCount, int unitCount) {
+    return Drawer(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF1A237E),
+              const Color(0xFF1A237E).withOpacity(0.85),
+              const Color(0xFF00BFA5).withOpacity(0.3),
+            ],
+          ),
         ),
-      ),
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(color: Colors.transparent),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.white.withOpacity(0.3),
-                        Colors.white.withOpacity(0.1),
-                      ],
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: const BoxDecoration(color: Colors.transparent),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.3),
+                          Colors.white.withOpacity(0.1),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.3),
+                        width: 2,
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
-                      width: 2,
-                    ),
+                    child: const Icon(Icons.admin_panel_settings_rounded,
+                        size: 40, color: Colors.white),
                   ),
-                  child: const Icon(Icons.admin_panel_settings_rounded, size: 40, color: Colors.white),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Admin Panel',
-                  style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                ),
-              ],
-            ),
-          ),
-          _buildDrawerItem(Icons.home_rounded, 'Home', () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
-            );
-          }),
-          _buildDrawerItem(Icons.dashboard_rounded, 'Dashboard', () {
-            Navigator.pop(context);
-          }),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Divider(color: Colors.white24, height: 1, thickness: 1),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
-            child: Text(
-              'MANAGEMENT',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Admin Panel',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5),
+                  ),
+                ],
               ),
             ),
-          ),
-          _buildDrawerItem(
-            Icons.apartment_rounded,
-            'Projects',
-                () {
+            _buildDrawerItem(Icons.home_rounded, 'Home', () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+            }),
+            _buildDrawerItem(Icons.dashboard_rounded, 'Dashboard', () {
               Navigator.pop(context);
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const ProjectsPage()));
-            },
-            badge: projectCount.toString(),
-          ),
-          _buildDrawerItem(
-            Icons.business_rounded,
-            'Buildings',
-                () {
+            }),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Divider(color: Colors.white24, height: 1, thickness: 1),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
+              child: Text(
+                'MANAGEMENT',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.6),
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
+            _buildDrawerItem(
+              Icons.apartment_rounded,
+              'Projects',
+                  () {
+                Navigator.pop(context);
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const ProjectsPage()));
+              },
+              badge: projectCount.toString(),
+            ),
+            _buildDrawerItem(
+              Icons.business_rounded,
+              'Buildings',
+                  () {
+                Navigator.pop(context);
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const BuildingsPage()));
+              },
+              badge: buildingCount.toString(),
+            ),
+            _buildDrawerItem(
+              Icons.layers_rounded,
+              'Floors',
+                  () {
+                Navigator.pop(context);
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const FloorsPage()));
+              },
+              badge: floorCount.toString(),
+            ),
+            _buildDrawerItem(
+              Icons.construction_rounded,
+              'Stages',
+                  () {
+                Navigator.pop(context);
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const StagesPage()));
+              },
+              badge: stageCount.toString(),
+            ),
+            _buildDrawerItem(
+              Icons.construction_rounded,
+              'Units',
+                  () {
+                Navigator.pop(context);
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const UnitsPage()));
+              },
+              badge: unitCount.toString(),
+            ),
+            _buildDrawerItem(
+              Icons.people_rounded,
+              'Employees',
+                  () {
+                Navigator.pop(context);
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const EmployeesPage()));
+              },
+              badge: employeeCount.toString(),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Divider(color: Colors.white24, height: 1, thickness: 1),
+            ),
+            _buildDrawerItem(Icons.analytics_rounded, 'Analytics', () {
               Navigator.pop(context);
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const BuildingsPage()));
-            },
-            badge: buildingCount.toString(),
-          ),
-          _buildDrawerItem(
-            Icons.layers_rounded,
-            'Floors',
-                () {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(_buildComingSoonSnackBar('Analytics'));
+            }),
+            _buildDrawerItem(Icons.settings_rounded, 'Settings', () {
               Navigator.pop(context);
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const FloorsPage()));
-            },
-            badge: floorCount.toString(),
-          ),
-          _buildDrawerItem(
-            Icons.people_rounded,
-            'Employees',
-                () {
-              Navigator.pop(context);
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const EmployeesPage()));
-            },
-            badge: employeeCount.toString(),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Divider(color: Colors.white24, height: 1, thickness: 1),
-          ),
-          _buildDrawerItem(Icons.analytics_rounded, 'Analytics', () {
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context)
-                .showSnackBar(_buildComingSoonSnackBar('Analytics'));
-          }),
-          _buildDrawerItem(Icons.settings_rounded, 'Settings', () {
-            Navigator.pop(context);
-          }),
-        ],
+            }),
+          ],
+        ),
       ),
     );
   }
