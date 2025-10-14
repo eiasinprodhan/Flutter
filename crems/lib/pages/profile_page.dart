@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/building.dart';
-import '../models/employee.dart';
+import '../models/employee.dart'; // Ensure this points to your new Employee model
 import '../models/floor.dart';
 import '../models/project.dart';
 import '../models/stage.dart';
@@ -33,14 +33,14 @@ import 'stages_page.dart';
 import 'units_page.dart';
 
 // --- VIOLET COLOR PALETTE (Consistent with other pages) ---
-const Color primaryViolet = Color(0xFF673AB7); // DeepPurple 500
-const Color primaryVioletDark = Color(0xFF4527A0); // DeepPurple 700
-const Color secondaryViolet = Color(0xFF9575CD); // DeepPurple 300
-const Color backgroundLight = Color(0xFFF5F5F5); // Grey 100
+const Color primaryViolet = Color(0xFF673AB7);
+const Color primaryVioletDark = Color(0xFF4527A0);
+const Color secondaryViolet = Color(0xFF9575CD);
+const Color backgroundLight = Color(0xFFF5F5F5);
 const Color accentRed = Color(0xFFFF6B6B);
 const Color accentOrange = Color(0xFFFFB74D);
 const Color accentGreen = Color(0xFF4CAF50);
-const Color accentBlue = Color(0xFF42A5F5); // Blue 400
+const Color accentBlue = Color(0xFF42A5F5);
 // --- END OF PALETTE ---
 
 class ProfilePage extends StatefulWidget {
@@ -50,12 +50,16 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin {
+class _ProfilePageState extends State<ProfilePage>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Future<void> _dataLoadingFuture;
 
-  // Data lists
+  Employee? _currentEmployee;
+  String? _userRole;
+  bool _isUserInfoLoading = true;
+
   List<Project> _projects = [];
   List<Building> _buildings = [];
   List<Employee> _employees = [];
@@ -66,10 +70,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   List<Transaction> _recentTransactions = [];
   List<Customer> _customers = [];
 
-  // Calculated totals
   double _totalCredit = 0.0;
   double _totalDebit = 0.0;
-
   bool _isDataLoaded = false;
 
   @override
@@ -83,6 +85,35 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
     _dataLoadingFuture = _loadAllData();
+    _loadCurrentUserData();
+  }
+
+  Future<void> _loadCurrentUserData() async {
+    if (!mounted) return;
+    setState(() {
+      _isUserInfoLoading = true;
+    });
+    try {
+      final email = await AuthService.getUserEmail();
+      final role = await AuthService.getUserRole();
+      if (email != null) {
+        final employee = await EmployeeService.getEmployeeByEmail(email);
+        if (mounted) {
+          setState(() {
+            _currentEmployee = employee;
+            _userRole = role ?? employee?.role; // Fallback to employee role if token role is null
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Failed to load current user data: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUserInfoLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _loadAllData() async {
@@ -97,9 +128,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         TransactionService.getAllTransactions(),
         CustomerService.getAllCustomers(),
       ]);
-
       if (!mounted) return;
-
       setState(() {
         _projects = results[0] as List<Project>;
         _buildings = results[1] as List<Building>;
@@ -109,10 +138,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         _stages = results[5] as List<Stage>;
         _transactions = results[6] as List<Transaction>;
         _customers = results[7] as List<Customer>;
-
         _calculateTransactionTotals();
         _prepareRecentTransactions();
-
         _isDataLoaded = true;
       });
     } catch (e) {
@@ -126,7 +153,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     }
   }
 
-  // UPDATED: Now uses `isCredit` boolean and handles null amounts.
   void _calculateTransactionTotals() {
     double credit = 0.0;
     double debit = 0.0;
@@ -141,10 +167,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     _totalDebit = debit;
   }
 
-  // UPDATED: Now sorts safely even if transaction dates are null.
   void _prepareRecentTransactions() {
     final sortedTransactions = List<Transaction>.from(_transactions);
-    // Null-safe sorting: transactions with no date are considered oldest.
     sortedTransactions.sort((a, b) {
       final dateA = a.date ?? DateTime(1900);
       final dateB = b.date ?? DateTime(1900);
@@ -156,6 +180,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   Future<void> _reloadData() async {
     setState(() {
       _dataLoadingFuture = _loadAllData();
+      _loadCurrentUserData();
     });
   }
 
@@ -177,20 +202,19 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   Future<void> _logout() async {
-    final confirmed = await showDialog<bool>(context: context, builder: (context) => _buildLogoutDialog());
-
+    final confirmed = await showDialog<bool>(
+        context: context, builder: (context) => _buildLogoutDialog());
     if (confirmed == true && mounted) {
-      final result = await AuthService.logout();
-      if (result && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          _buildStatusSnackBar('Logged out successfully!', Icons.check_circle_rounded, accentGreen),
-        );
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
-              (route) => false,
-        );
-      }
+      await AuthService.logoutAndClearSession();
+      ScaffoldMessenger.of(context).showSnackBar(
+        _buildStatusSnackBar(
+            'Logged out successfully!', Icons.check_circle_rounded, accentGreen),
+      );
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+            (route) => false,
+      );
     }
   }
 
@@ -204,28 +228,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           appBar: AppBar(
             backgroundColor: backgroundLight,
             foregroundColor: primaryViolet,
-            title: const Text('Dashboard', style: TextStyle(fontWeight: FontWeight.bold, color: primaryViolet)),
+            title: const Text('Dashboard',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: primaryViolet)),
             elevation: 0,
             actions: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.notifications_outlined, color: Colors.grey[700]),
-                    onPressed: _showNotifications,
-                  ),
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(color: primaryViolet, shape: BoxShape.circle),
-                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                      child: const Text('3', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-                    ),
-                  ),
-                ],
-              ),
               IconButton(
                 icon: Icon(Icons.logout_rounded, color: Colors.grey[700]),
                 onPressed: _logout,
@@ -249,11 +256,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     if (snapshot.connectionState == ConnectionState.waiting) {
       return _buildLoadingProgress();
     }
-
     if (snapshot.hasError) {
       return _buildErrorWidget();
     }
-
     if (!_isDataLoaded) {
       return _buildErrorWidget();
     }
@@ -279,6 +284,138 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
+  // --- MODIFICATION START: Updated to use the new Employee model ---
+  String _toTitleCase(String text) {
+    if (text.isEmpty) return '';
+    return text
+        .split(RegExp(r'[\s_]+')) // Split by space or underscore
+        .map((word) => word.isNotEmpty
+        ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
+        : '')
+        .join(' ');
+  }
+
+  Widget _buildWelcomeCard() {
+    final hour = DateTime.now().hour;
+    String greeting =
+    hour >= 17 ? 'Good Evening' : (hour >= 12 ? 'Good Afternoon' : 'Good Morning');
+    IconData greetingIcon =
+    hour >= 17 ? Icons.nightlight_round : Icons.wb_sunny_rounded;
+
+    // Use the new `name` field from the Employee model
+    final String displayName = _isUserInfoLoading
+        ? 'Loading...'
+        : _currentEmployee?.name ?? 'User';
+
+    final String displayRole = _isUserInfoLoading
+        ? 'Fetching role...'
+        : _toTitleCase(_userRole ?? 'User Role');
+
+    // Use the new `photo` field for the image URL
+    final Widget profileAvatar = _isUserInfoLoading
+        ? const CircleAvatar(
+        radius: 30,
+        backgroundColor: Colors.white24,
+        child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)))
+        : _currentEmployee?.photo != null &&
+        _currentEmployee!.photo!.isNotEmpty
+        ? CircleAvatar(
+      radius: 30,
+      backgroundColor: Colors.white,
+      backgroundImage: NetworkImage('http://localhost:8080/images/employees/' + _currentEmployee!.photo!),
+    )
+        : CircleAvatar(
+      radius: 30,
+      backgroundColor: secondaryViolet,
+      child: Text(
+        displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+        style: const TextStyle(
+            fontSize: 28,
+            color: Colors.white,
+            fontWeight: FontWeight.bold),
+      ),
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [primaryViolet, secondaryViolet]),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+              color: primaryViolet.withOpacity(0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 10))
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  Icon(greetingIcon, color: Colors.white70, size: 20),
+                  const SizedBox(width: 8),
+                  Text(greeting,
+                      style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500)),
+                ]),
+                const SizedBox(height: 8),
+                Text(displayName,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        height: 1.2)),
+                const SizedBox(height: 4),
+                Text(displayRole,
+                    style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500)),
+                const SizedBox(height: 12),
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.calendar_today_rounded,
+                          color: Colors.white70, size: 14),
+                      const SizedBox(width: 6),
+                      Text(DateFormat('MMM dd, yyyy').format(DateTime.now()),
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          profileAvatar,
+        ],
+      ),
+    );
+  }
+  // --- MODIFICATION END ---
+
+  // ... The rest of the file is unchanged ...
+
   Widget _buildLoadingProgress() {
     return Center(
       child: Column(
@@ -289,15 +426,28 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10))],
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10))
+              ],
             ),
             child: Column(
               children: [
-                const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(primaryViolet), strokeWidth: 3),
+                const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(primaryViolet),
+                    strokeWidth: 3),
                 const SizedBox(height: 20),
-                const Text('Loading Dashboard', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryViolet)),
+                const Text('Loading Dashboard',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: primaryViolet)),
                 const SizedBox(height: 8),
-                Text('Please wait while we fetch your data...', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                Text('Please wait while we fetch your data...',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14)),
               ],
             ),
           ),
@@ -321,32 +471,79 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           padding: EdgeInsets.zero,
           children: [
             _buildDrawerHeader(),
-            const Divider(color: Colors.white24, height: 1, thickness: 1, indent: 16, endIndent: 16),
-            _buildDrawerItem(Icons.home_rounded, 'Home', () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()))),
-            _buildDrawerItem(Icons.dashboard_rounded, 'Dashboard', () => Navigator.pop(context)),
-
+            const Divider(
+                color: Colors.white24,
+                height: 1,
+                thickness: 1,
+                indent: 16,
+                endIndent: 16),
+            _buildDrawerItem(
+                Icons.home_rounded,
+                'Home',
+                    () => Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) => const HomePage()))),
+            _buildDrawerItem(
+                Icons.dashboard_rounded, 'Dashboard', () => Navigator.pop(context)),
             _buildDrawerCategoryHeader('CORE MANAGEMENT'),
-            _buildDrawerItem(Icons.apartment_rounded, 'Projects', () => _navigateToPage(const ProjectsPage()), badge: counts['projects']!.toString()),
-            _buildDrawerItem(Icons.business_rounded, 'Buildings', () => _navigateToPage(const BuildingsPage()), badge: counts['buildings']!.toString()),
-            _buildDrawerItem(Icons.layers_rounded, 'Floors', () => _navigateToPage(const FloorsPage()), badge: counts['floors']!.toString()),
-            _buildDrawerItem(Icons.door_front_door_rounded, 'Units', () => _navigateToPage(const UnitsPage()), badge: counts['units']!.toString()),
-
+            _buildDrawerItem(
+                Icons.apartment_rounded,
+                'Projects',
+                    () => _navigateToPage(const ProjectsPage()),
+                badge: counts['projects']!.toString()),
+            _buildDrawerItem(
+                Icons.business_rounded,
+                'Buildings',
+                    () => _navigateToPage(const BuildingsPage()),
+                badge: counts['buildings']!.toString()),
+            _buildDrawerItem(
+                Icons.layers_rounded,
+                'Floors',
+                    () => _navigateToPage(const FloorsPage()),
+                badge: counts['floors']!.toString()),
+            _buildDrawerItem(
+                Icons.door_front_door_rounded,
+                'Units',
+                    () => _navigateToPage(const UnitsPage()),
+                badge: counts['units']!.toString()),
             _buildDrawerCategoryHeader('FINANCIALS'),
-            _buildDrawerItem(Icons.receipt_long_rounded, 'Transactions', () => _navigateToPage(const TransactionsPage()), badge: counts['transactions']!.toString()),
-            _buildDrawerItem(Icons.book_online_rounded, 'Bookings', () => _navigateToPage(const BookingsPage())),
-
+            _buildDrawerItem(
+                Icons.receipt_long_rounded,
+                'Transactions',
+                    () => _navigateToPage(const TransactionsPage()),
+                badge: counts['transactions']!.toString()),
+            _buildDrawerItem(Icons.book_online_rounded, 'Bookings',
+                    () => _navigateToPage(const BookingsPage())),
             _buildDrawerCategoryHeader('RESOURCES'),
-            _buildDrawerItem(Icons.people_rounded, 'Employees', () => _navigateToPage(const EmployeesPage()), badge: counts['employees']!.toString()),
-            _buildDrawerItem(Icons.groups_rounded, 'Customers', () => _navigateToPage(const CustomersPage()), badge: counts['customers']!.toString()),
-            _buildDrawerItem(Icons.inventory_rounded, 'Raw Materials', () => _navigateToPage(const RawMaterialsPage())),
-            _buildDrawerItem(Icons.construction_rounded, 'Stages', () => _navigateToPage(const StagesPage()), badge: counts['stages']!.toString()),
-
-            const Divider(color: Colors.white24, height: 1, thickness: 1, indent: 16, endIndent: 16),
+            _buildDrawerItem(
+                Icons.people_rounded,
+                'Employees',
+                    () => _navigateToPage(const EmployeesPage()),
+                badge: counts['employees']!.toString()),
+            _buildDrawerItem(
+                Icons.groups_rounded,
+                'Customers',
+                    () => _navigateToPage(const CustomersPage()),
+                badge: counts['customers']!.toString()),
+            _buildDrawerItem(Icons.inventory_rounded, 'Raw Materials',
+                    () => _navigateToPage(const RawMaterialsPage())),
+            _buildDrawerItem(
+                Icons.construction_rounded,
+                'Stages',
+                    () => _navigateToPage(const StagesPage()),
+                badge: counts['stages']!.toString()),
+            const Divider(
+                color: Colors.white24,
+                height: 1,
+                thickness: 1,
+                indent: 16,
+                endIndent: 16),
             _buildDrawerItem(Icons.analytics_rounded, 'Analytics', () {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(_buildComingSoonSnackBar('Analytics'));
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(_buildComingSoonSnackBar('Analytics'));
             }),
-            _buildDrawerItem(Icons.settings_rounded, 'Settings', () => Navigator.pop(context)),
+            _buildDrawerItem(
+                Icons.settings_rounded, 'Settings', () => Navigator.pop(context)),
           ],
         ),
       ),
@@ -363,14 +560,21 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [Colors.white.withOpacity(0.3), Colors.white.withOpacity(0.1)]),
+              gradient: LinearGradient(
+                  colors: [Colors.white.withOpacity(0.3), Colors.white.withOpacity(0.1)]),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
             ),
-            child: const Icon(Icons.admin_panel_settings_rounded, size: 40, color: Colors.white),
+            child: const Icon(Icons.admin_panel_settings_rounded,
+                size: 40, color: Colors.white),
           ),
           const SizedBox(height: 16),
-          const Text('Admin Panel', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+          const Text('Admin Panel',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5)),
         ],
       ),
     );
@@ -395,22 +599,33 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     if (Navigator.canPop(context)) {
       Navigator.pop(context);
     }
-    Navigator.push(context, MaterialPageRoute(builder: (context) => page)).then((_) => _reloadData());
+    Navigator.push(context, MaterialPageRoute(builder: (context) => page))
+        .then((_) => _reloadData());
   }
 
-  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap, {String? badge}) {
+  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap,
+      {String? badge}) {
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+        decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(10)),
         child: Icon(icon, color: Colors.white, size: 22),
       ),
-      title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15)),
+      title: Text(title,
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15)),
       trailing: (badge != null && badge != '0')
           ? Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(color: secondaryViolet, borderRadius: BorderRadius.circular(12)),
-        child: Text(badge, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+        decoration: BoxDecoration(
+            color: secondaryViolet, borderRadius: BorderRadius.circular(12)),
+        child: Text(badge,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.bold)),
       )
           : null,
       onTap: onTap,
@@ -421,7 +636,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   SnackBar _buildComingSoonSnackBar(String feature) {
     return SnackBar(
-      content: Row(children: [const Icon(Icons.info_outline_rounded, color: Colors.white), const SizedBox(width: 12), Text('$feature feature coming soon')]),
+      content: Row(children: [
+        const Icon(Icons.info_outline_rounded, color: Colors.white),
+        const SizedBox(width: 12),
+        Text('$feature feature coming soon')
+      ]),
       backgroundColor: secondaryViolet,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -429,64 +648,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildWelcomeCard() {
-    final hour = DateTime.now().hour;
-    String greeting = hour >= 17 ? 'Good Evening' : (hour >= 12 ? 'Good Afternoon' : 'Good Morning');
-    IconData greetingIcon = hour >= 17 ? Icons.nightlight_round : Icons.wb_sunny_rounded;
-
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [primaryViolet, secondaryViolet]),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: primaryViolet.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 10))],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [
-                  Icon(greetingIcon, color: Colors.white70, size: 20),
-                  const SizedBox(width: 8),
-                  Text(greeting, style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500)),
-                ]),
-                const SizedBox(height: 8),
-                const Text('Administrator', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold, height: 1.2)),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.calendar_today_rounded, color: Colors.white70, size: 14),
-                      const SizedBox(width: 6),
-                      Text(DateFormat('MMM dd, yyyy').format(DateTime.now()), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withOpacity(0.3), width: 3),
-            ),
-            child: const Icon(Icons.person_rounded, size: 45, color: Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildStatsGrid() {
     final counts = _dataCounts;
-    final currencyFormat = NumberFormat.compactCurrency(locale: 'en_US', symbol: '\$');
+    final currencyFormat =
+    NumberFormat.compactCurrency(locale: 'en_US', symbol: '\$');
 
     return GridView.count(
       crossAxisCount: 2,
@@ -496,23 +661,35 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       crossAxisSpacing: 16,
       childAspectRatio: 1.4,
       children: [
-        _buildStatCard('Projects', counts['projects']!.toString(), Icons.apartment_rounded, secondaryViolet, 'Active Projects'),
-        _buildStatCard('Buildings', counts['buildings']!.toString(), Icons.business_rounded, primaryViolet, 'In Portfolio'),
-        _buildStatCard('Employees', counts['employees']!.toString(), Icons.people_rounded, accentOrange, 'On Payroll'),
-        _buildStatCard('Customers', counts['customers']!.toString(), Icons.groups_rounded, accentBlue, 'Total Clients'),
-        _buildStatCard('Total Credit', currencyFormat.format(_totalCredit), Icons.arrow_upward_rounded, accentGreen, 'Income Recorded'),
-        _buildStatCard('Total Debit', currencyFormat.format(_totalDebit), Icons.arrow_downward_rounded, accentRed, 'Expenses Paid'),
+        _buildStatCard('Projects', counts['projects']!.toString(),
+            Icons.apartment_rounded, secondaryViolet, 'Active Projects'),
+        _buildStatCard('Buildings', counts['buildings']!.toString(),
+            Icons.business_rounded, primaryViolet, 'In Portfolio'),
+        _buildStatCard('Employees', counts['employees']!.toString(),
+            Icons.people_rounded, accentOrange, 'On Payroll'),
+        _buildStatCard('Customers', counts['customers']!.toString(),
+            Icons.groups_rounded, accentBlue, 'Total Clients'),
+        _buildStatCard('Total Credit', currencyFormat.format(_totalCredit),
+            Icons.arrow_upward_rounded, accentGreen, 'Income Recorded'),
+        _buildStatCard('Total Debit', currencyFormat.format(_totalDebit),
+            Icons.arrow_downward_rounded, accentRed, 'Expenses Paid'),
       ],
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, String subtitle) {
+  Widget _buildStatCard(
+      String title, String value, IconData icon, Color color, String subtitle) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 5))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -521,10 +698,17 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Text(title, style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w600))),
+              Expanded(
+                  child: Text(title,
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w600))),
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10)),
                 child: Icon(icon, size: 22, color: color),
               ),
             ],
@@ -532,9 +716,18 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(value, style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: color, height: 1)),
+              Text(value,
+                  style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                      height: 1)),
               const SizedBox(height: 6),
-              Text(subtitle, style: TextStyle(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w500)),
+              Text(subtitle,
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[500],
+                      fontWeight: FontWeight.w500)),
             ],
           ),
         ],
@@ -552,8 +745,15 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Recent Transactions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryViolet)),
-            TextButton(onPressed: () => _navigateToPage(const TransactionsPage()), child: const Text('See All', style: TextStyle(color: secondaryViolet))),
+            const Text('Recent Transactions',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: primaryViolet)),
+            TextButton(
+                onPressed: () => _navigateToPage(const TransactionsPage()),
+                child: const Text('See All',
+                    style: TextStyle(color: secondaryViolet))),
           ],
         ),
         const SizedBox(height: 16),
@@ -566,11 +766,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  // UPDATED: Now aligns with the new Transaction model.
   Widget _buildTransactionItem(Transaction transaction) {
     final isCredit = transaction.isCredit;
     final color = isCredit ? accentGreen : accentRed;
-    final icon = isCredit ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded;
+    final icon =
+    isCredit ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded;
     final currencyFormat = NumberFormat.currency(locale: 'en_US', symbol: '\$');
     final sign = isCredit ? '+' : '-';
 
@@ -581,7 +781,12 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 5))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 5))
+        ],
       ),
       child: Row(
         children: [
@@ -600,7 +805,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               children: [
                 Text(
                   transaction.name ?? 'No Description',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: primaryViolet),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: primaryViolet),
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
@@ -638,76 +846,17 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  void _showNotifications() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: backgroundLight,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Notifications', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryViolet)),
-                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Mark all as read', style: TextStyle(color: secondaryViolet))),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildNotificationItem('New Project Assignment', 'Assigned to Sunset Tower project', Icons.assignment_rounded, secondaryViolet, true),
-            _buildNotificationItem('Budget Alert', 'Budget threshold reached for Ocean View', Icons.warning_rounded, accentRed, true),
-            _buildNotificationItem('System Update', 'New features available in dashboard', Icons.system_update_rounded, primaryViolet, false),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNotificationItem(String title, String message, IconData icon, Color color, bool isUnread) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isUnread ? color.withOpacity(0.05) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isUnread ? color.withOpacity(0.3) : Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: primaryViolet))),
-                    if (isUnread) Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(message, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildLogoutDialog() {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: const Row(children: [Icon(Icons.logout_rounded, color: accentRed, size: 28), SizedBox(width: 12), Text('Confirm Logout')]),
-      content: const Text('Are you sure you want to logout from your account?', style: TextStyle(fontSize: 15)),
+      title: const Row(children: [
+        Icon(Icons.logout_rounded, color: accentRed, size: 28),
+        SizedBox(width: 12),
+        Text('Confirm Logout')
+      ]),
+      content: const Text(
+          'Are you sure you want to logout from your account?',
+          style: TextStyle(fontSize: 15)),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
@@ -718,7 +867,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           onPressed: () => Navigator.pop(context, true),
           style: ElevatedButton.styleFrom(
             backgroundColor: accentRed,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
           child: const Text('Logout'),
@@ -729,7 +879,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   SnackBar _buildStatusSnackBar(String message, IconData icon, Color color) {
     return SnackBar(
-      content: Row(children: [Icon(icon, color: Colors.white), const SizedBox(width: 12), Text(message)]),
+      content: Row(children: [
+        Icon(icon, color: Colors.white),
+        const SizedBox(width: 12),
+        Text(message)
+      ]),
       backgroundColor: color,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -746,9 +900,13 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           children: [
             Icon(Icons.wifi_off_rounded, color: Colors.red.shade300, size: 60),
             const SizedBox(height: 16),
-            const Text('Connection Error', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const Text('Connection Error',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('Could not fetch dashboard data. Please check your connection and try again.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600])),
+            Text(
+                'Could not fetch dashboard data. Please check your connection and try again.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600])),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: _reloadData,
@@ -756,8 +914,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryViolet,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ],

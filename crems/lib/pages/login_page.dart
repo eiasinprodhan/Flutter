@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'profile_page.dart';
 
-// --- VIOLET COLOR PALETTE (Consistent with HomePage) ---
-const Color primaryViolet = Color(0xFF673AB7); // DeepPurple 500
-const Color primaryVioletDark = Color(0xFF4527A0); // DeepPurple 700
-const Color secondaryViolet = Color(0xFF9575CD); // DeepPurple 300
+// --- VIOLET COLOR PALETTE ---
+const Color primaryViolet = Color(0xFF673AB7);
+const Color primaryVioletDark = Color(0xFF4527A0);
+const Color secondaryViolet = Color(0xFF9575CD);
 // --- END OF PALETTE ---
 
 class LoginPage extends StatefulWidget {
@@ -56,7 +56,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         _isLoading = true;
       });
 
-      final authResponse = await AuthService.login(
+      // MODIFICATION: Call the new login method which returns a boolean.
+      final bool success = await AuthService.loginAndSaveSession(
         _emailController.text.trim(),
         _passwordController.text,
       );
@@ -67,17 +68,18 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         _isLoading = false;
       });
 
-      if (authResponse != null && authResponse.token != null) {
+      // MODIFICATION: Logic is now simpler based on the boolean result.
+      if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 12),
-                Text(authResponse.message ?? 'Login successful!'),
+              children: const [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 12),
+                Text('Login successful!'), // Generic success message
               ],
             ),
-            backgroundColor: const Color(0xFF4CAF50), // Standard success green
+            backgroundColor: const Color(0xFF4CAF50),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
@@ -99,7 +101,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 ),
               ],
             ),
-            backgroundColor: const Color(0xFFFF6B6B), // Standard error red
+            backgroundColor: const Color(0xFFFF6B6B),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
@@ -110,6 +112,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
+    // The build method remains exactly the same.
+    // ...
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
