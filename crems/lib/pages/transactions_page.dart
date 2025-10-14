@@ -2,7 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:printing/printing.dart';
+
 import '../models/transaction.dart' as model;
+import '../services/pdf_service.dart';
 import '../services/transaction_service.dart';
 import 'transaction_form_page.dart';
 
@@ -28,10 +31,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
   String? errorMessage;
   final TextEditingController _searchController = TextEditingController();
 
-  // --- NEW: State variables for filters ---
-  String _selectedTypeFilter = 'All'; // Can be 'All', 'Credit', or 'Debit'
+  String _selectedTypeFilter = 'All';
   DateTimeRange? _selectedDateRange;
-  // --- END NEW ---
 
   @override
   void initState() {
@@ -46,57 +47,50 @@ class _TransactionsPageState extends State<TransactionsPage> {
     super.dispose();
   }
 
-  // --- MODIFIED: Enhanced filtering logic ---
   void _applyFilters() {
     final query = _searchController.text.toLowerCase();
-
-    // Start with the full list of transactions
     List<model.Transaction> tempFiltered = List.from(transactions);
-
-    // 1. Filter by transaction type (Credit/Debit)
     if (_selectedTypeFilter == 'Credit') {
       tempFiltered = tempFiltered.where((t) => t.isCredit).toList();
     } else if (_selectedTypeFilter == 'Debit') {
       tempFiltered = tempFiltered.where((t) => !t.isCredit).toList();
     }
-
-    // 2. Filter by date range
     if (_selectedDateRange != null) {
       tempFiltered = tempFiltered.where((t) {
         if (t.date == null) return false;
-        // Normalize dates to ignore time, making the range inclusive
         final transactionDate = DateTime(t.date!.year, t.date!.month, t.date!.day);
         final startDate = DateTime(_selectedDateRange!.start.year, _selectedDateRange!.start.month, _selectedDateRange!.start.day);
         final endDate = DateTime(_selectedDateRange!.end.year, _selectedDateRange!.end.month, _selectedDateRange!.end.day);
-
         return (transactionDate.isAfter(startDate) || transactionDate.isAtSameMomentAs(startDate)) &&
             (transactionDate.isBefore(endDate) || transactionDate.isAtSameMomentAs(endDate));
       }).toList();
     }
-
-    // 3. Filter by search query
     if (query.isNotEmpty) {
       tempFiltered = tempFiltered.where((t) {
         return (t.name?.toLowerCase() ?? '').contains(query);
       }).toList();
     }
-
     setState(() {
       filteredTransactions = tempFiltered;
     });
   }
-  // --- END MODIFIED ---
 
   Future<void> _loadTransactions() async {
     if (!mounted) return;
     setState(() => isLoading = true);
     try {
       final fetched = await TransactionService.getAllTransactions();
-      fetched.sort((a, b) => b.date!.compareTo(a.date!));
+      // --- FIX IS HERE: Made sorting null-safe ---
+      fetched.sort((a, b) {
+        // Treat null dates as the oldest
+        final dateA = a.date ?? DateTime(1900);
+        final dateB = b.date ?? DateTime(1900);
+        return dateB.compareTo(dateA);
+      });
+      // --- END OF FIX ---
       if (mounted) {
         setState(() {
           transactions = fetched;
-          // Apply initial filters upon loading
           _applyFilters();
           isLoading = false;
           errorMessage = null;
@@ -116,7 +110,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(_buildStatusSnackBar('Transaction deleted successfully', Icons.check_circle, accentGreen));
-          _loadTransactions(); // This reloads and applies filters
+          _loadTransactions();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(_buildStatusSnackBar('Failed to delete transaction', Icons.error, accentRed));
         }
@@ -124,7 +118,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
     }
   }
 
-  // --- NEW: Method to show the date range picker ---
   Future<void> _pickDateRange() async {
     final initialDateRange = _selectedDateRange ?? DateTimeRange(
       start: DateTime.now().subtract(const Duration(days: 30)),
@@ -136,7 +129,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
       lastDate: DateTime(2101),
       initialDateRange: initialDateRange,
     );
-
     if (newDateRange != null) {
       setState(() {
         _selectedDateRange = newDateRange;
@@ -144,9 +136,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
       _applyFilters();
     }
   }
-  // --- END NEW ---
 
-  // --- NEW: Method to clear all filters ---
   void _clearFilters() {
     _searchController.clear();
     setState(() {
@@ -155,7 +145,44 @@ class _TransactionsPageState extends State<TransactionsPage> {
     });
     _applyFilters();
   }
-  // --- END NEW ---
+
+  Future<void> _exportToPdf() async {
+    if (filteredTransactions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        _buildStatusSnackBar('No transactions to export', Icons.info_outline, Colors.orange),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator(color: primaryViolet)),
+    );
+
+    try {
+      final String dateRangeString = _selectedDateRange != null
+          ? '${DateFormat.yMd().format(_selectedDateRange!.start)} - ${DateFormat.yMd().format(_selectedDateRange!.end)}'
+          : 'All Time';
+
+      final pdfData = await PdfService.generateTransactionReport(
+        transactions: filteredTransactions,
+        dateRange: dateRangeString,
+        filterType: _selectedTypeFilter,
+      );
+
+      Navigator.of(context).pop();
+
+      await Printing.layoutPdf(
+        onLayout: (format) async => pdfData,
+      );
+    } catch (e) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        _buildStatusSnackBar('Failed to generate PDF: $e', Icons.error, accentRed),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +192,18 @@ class _TransactionsPageState extends State<TransactionsPage> {
         backgroundColor: primaryViolet,
         foregroundColor: Colors.white,
         title: const Text('Transactions'),
-        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _loadTransactions, tooltip: 'Refresh')],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf_outlined),
+            onPressed: _exportToPdf,
+            tooltip: 'Export to PDF',
+          ),
+          IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _loadTransactions,
+              tooltip: 'Refresh'
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
@@ -187,7 +225,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                 : filteredTransactions.isEmpty
                 ? _buildEmptyStateWidget()
                 : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 80), // Adjusted top padding
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
               itemCount: filteredTransactions.length,
               itemBuilder: (context, index) => _buildTransactionCard(filteredTransactions[index]),
             ),
@@ -197,7 +235,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
     );
   }
 
-  // --- MODIFIED: Rebuilt filter bar UI ---
   Widget _buildSearchAndFilterBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -266,7 +303,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
       shape: StadiumBorder(side: BorderSide(color: isSelected ? (color ?? primaryViolet) : Colors.grey[300]!)),
     );
   }
-  // --- END MODIFIED ---
 
   Widget _buildTransactionCard(model.Transaction transaction) {
     final bool isCredit = transaction.isCredit;
