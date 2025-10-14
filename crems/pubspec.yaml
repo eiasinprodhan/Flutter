@@ -31,11 +31,13 @@ dependencies:
   flutter:
     sdk: flutter
 
-  http: ^1.1.0
   image_picker: ^1.0.4
   cupertino_icons: ^1.0.2
   intl: ^0.18.1
   url_launcher: ^6.2.5
+  http: ^0.13.5
+  shared_preferences: ^2.0.15
+  jwt_decode: ^0.3.1
 
 dev_dependencies:
   flutter_test:

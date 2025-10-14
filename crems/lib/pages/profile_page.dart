@@ -1,5 +1,13 @@
+// lib/pages/profile_page.dart
+
+import 'package:crems/models/customer.dart';
+import 'package:crems/models/transaction.dart';
 import 'package:crems/pages/bookings_page.dart';
 import 'package:crems/pages/customers_page.dart';
+import 'package:crems/pages/raw_materials_page.dart';
+import 'package:crems/pages/transactions_page.dart';
+import 'package:crems/services/customer_service.dart';
+import 'package:crems/services/transaction_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -32,6 +40,7 @@ const Color backgroundLight = Color(0xFFF5F5F5); // Grey 100
 const Color accentRed = Color(0xFFFF6B6B);
 const Color accentOrange = Color(0xFFFFB74D);
 const Color accentGreen = Color(0xFF4CAF50);
+const Color accentBlue = Color(0xFF42A5F5); // Blue 400
 // --- END OF PALETTE ---
 
 class ProfilePage extends StatefulWidget {
@@ -46,12 +55,21 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   late Animation<double> _fadeAnimation;
   late Future<void> _dataLoadingFuture;
 
+  // Data lists
   List<Project> _projects = [];
   List<Building> _buildings = [];
   List<Employee> _employees = [];
   List<Floor> _floors = [];
   List<Unit> _units = [];
   List<Stage> _stages = [];
+  List<Transaction> _transactions = [];
+  List<Transaction> _recentTransactions = [];
+  List<Customer> _customers = [];
+
+  // Calculated totals
+  double _totalCredit = 0.0;
+  double _totalDebit = 0.0;
+
   bool _isDataLoaded = false;
 
   @override
@@ -76,6 +94,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         FloorService.getAllFloors(),
         UnitService.getAllUnits(),
         StageService.getAllStages(),
+        TransactionService.getAllTransactions(),
+        CustomerService.getAllCustomers(),
       ]);
 
       if (!mounted) return;
@@ -87,6 +107,12 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         _floors = results[3] as List<Floor>;
         _units = results[4] as List<Unit>;
         _stages = results[5] as List<Stage>;
+        _transactions = results[6] as List<Transaction>;
+        _customers = results[7] as List<Customer>;
+
+        _calculateTransactionTotals();
+        _prepareRecentTransactions();
+
         _isDataLoaded = true;
       });
     } catch (e) {
@@ -98,6 +124,33 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       }
       rethrow;
     }
+  }
+
+  // UPDATED: Now uses `isCredit` boolean and handles null amounts.
+  void _calculateTransactionTotals() {
+    double credit = 0.0;
+    double debit = 0.0;
+    for (var transaction in _transactions) {
+      if (transaction.isCredit) {
+        credit += transaction.amount ?? 0.0;
+      } else {
+        debit += transaction.amount ?? 0.0;
+      }
+    }
+    _totalCredit = credit;
+    _totalDebit = debit;
+  }
+
+  // UPDATED: Now sorts safely even if transaction dates are null.
+  void _prepareRecentTransactions() {
+    final sortedTransactions = List<Transaction>.from(_transactions);
+    // Null-safe sorting: transactions with no date are considered oldest.
+    sortedTransactions.sort((a, b) {
+      final dateA = a.date ?? DateTime(1900);
+      final dateB = b.date ?? DateTime(1900);
+      return dateB.compareTo(dateA);
+    });
+    _recentTransactions = sortedTransactions.take(10).toList();
   }
 
   Future<void> _reloadData() async {
@@ -113,6 +166,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     'floors': _floors.length,
     'units': _units.length,
     'stages': _stages.length,
+    'transactions': _transactions.length,
+    'customers': _customers.length,
   };
 
   @override
@@ -144,8 +199,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     return FutureBuilder<void>(
       future: _dataLoadingFuture,
       builder: (context, snapshot) {
-        final counts = _dataCounts;
-
         return Scaffold(
           backgroundColor: backgroundLight,
           appBar: AppBar(
@@ -181,14 +234,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               const SizedBox(width: 8),
             ],
           ),
-          drawer: _buildDrawer(
-            counts['projects']!,
-            counts['buildings']!,
-            counts['employees']!,
-            counts['floors']!,
-            counts['stages']!,
-            counts['units']!,
-          ),
+          drawer: _buildDrawer(),
           body: RefreshIndicator(
             onRefresh: _reloadData,
             color: primaryViolet,
@@ -212,7 +258,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       return _buildErrorWidget();
     }
 
-    final counts = _dataCounts;
     _animationController.forward();
 
     return FadeTransition(
@@ -225,11 +270,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           children: [
             _buildWelcomeCard(),
             const SizedBox(height: 24),
-            _buildStatsGrid(counts['projects']!, counts['buildings']!, counts['employees']!),
+            _buildStatsGrid(),
             const SizedBox(height: 24),
-            _buildQuickActions(),
-            const SizedBox(height: 24),
-            _buildRecentActivity(),
+            _buildRecentTransactions(),
           ],
         ),
       ),
@@ -263,7 +306,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildDrawer(int projectCount, int buildingCount, int employeeCount, int floorCount, int stageCount, int unitCount) {
+  Widget _buildDrawer() {
+    final counts = _dataCounts;
     return Drawer(
       child: Container(
         decoration: const BoxDecoration(
@@ -276,42 +320,28 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(color: Colors.transparent),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [Colors.white.withOpacity(0.3), Colors.white.withOpacity(0.1)]),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
-                    ),
-                    child: const Icon(Icons.admin_panel_settings_rounded, size: 40, color: Colors.white),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text('Admin Panel', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-                ],
-              ),
-            ),
+            _buildDrawerHeader(),
+            const Divider(color: Colors.white24, height: 1, thickness: 1, indent: 16, endIndent: 16),
             _buildDrawerItem(Icons.home_rounded, 'Home', () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()))),
             _buildDrawerItem(Icons.dashboard_rounded, 'Dashboard', () => Navigator.pop(context)),
-            const Padding(padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8), child: Divider(color: Colors.white24, height: 1, thickness: 1)),
-            Padding(
-              padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
-              child: Text('MANAGEMENT', style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-            ),
-            _buildDrawerItem(Icons.apartment_rounded, 'Projects', () => _navigateToPage(const ProjectsPage()), badge: projectCount.toString()),
-            _buildDrawerItem(Icons.business_rounded, 'Buildings', () => _navigateToPage(const BuildingsPage()), badge: buildingCount.toString()),
-            _buildDrawerItem(Icons.layers_rounded, 'Floors', () => _navigateToPage(const FloorsPage()), badge: floorCount.toString()),
-            _buildDrawerItem(Icons.construction_rounded, 'Stages', () => _navigateToPage(const StagesPage()), badge: stageCount.toString()),
-            _buildDrawerItem(Icons.door_front_door_rounded, 'Units', () => _navigateToPage(const UnitsPage()), badge: unitCount.toString()),
-            _buildDrawerItem(Icons.door_front_door_rounded, 'Bookings', () => _navigateToPage(const BookingsPage()), badge: unitCount.toString()),
-            _buildDrawerItem(Icons.people_rounded, 'Employees', () => _navigateToPage(const EmployeesPage()), badge: employeeCount.toString()),
-            _buildDrawerItem(Icons.people_rounded, 'Customers', () => _navigateToPage(const CustomersPage()), badge: employeeCount.toString()),
-            const Padding(padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8), child: Divider(color: Colors.white24, height: 1, thickness: 1)),
+
+            _buildDrawerCategoryHeader('CORE MANAGEMENT'),
+            _buildDrawerItem(Icons.apartment_rounded, 'Projects', () => _navigateToPage(const ProjectsPage()), badge: counts['projects']!.toString()),
+            _buildDrawerItem(Icons.business_rounded, 'Buildings', () => _navigateToPage(const BuildingsPage()), badge: counts['buildings']!.toString()),
+            _buildDrawerItem(Icons.layers_rounded, 'Floors', () => _navigateToPage(const FloorsPage()), badge: counts['floors']!.toString()),
+            _buildDrawerItem(Icons.door_front_door_rounded, 'Units', () => _navigateToPage(const UnitsPage()), badge: counts['units']!.toString()),
+
+            _buildDrawerCategoryHeader('FINANCIALS'),
+            _buildDrawerItem(Icons.receipt_long_rounded, 'Transactions', () => _navigateToPage(const TransactionsPage()), badge: counts['transactions']!.toString()),
+            _buildDrawerItem(Icons.book_online_rounded, 'Bookings', () => _navigateToPage(const BookingsPage())),
+
+            _buildDrawerCategoryHeader('RESOURCES'),
+            _buildDrawerItem(Icons.people_rounded, 'Employees', () => _navigateToPage(const EmployeesPage()), badge: counts['employees']!.toString()),
+            _buildDrawerItem(Icons.groups_rounded, 'Customers', () => _navigateToPage(const CustomersPage()), badge: counts['customers']!.toString()),
+            _buildDrawerItem(Icons.inventory_rounded, 'Raw Materials', () => _navigateToPage(const RawMaterialsPage())),
+            _buildDrawerItem(Icons.construction_rounded, 'Stages', () => _navigateToPage(const StagesPage()), badge: counts['stages']!.toString()),
+
+            const Divider(color: Colors.white24, height: 1, thickness: 1, indent: 16, endIndent: 16),
             _buildDrawerItem(Icons.analytics_rounded, 'Analytics', () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(_buildComingSoonSnackBar('Analytics'));
@@ -323,10 +353,49 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  void _navigateToPage(Widget page) async {
-    Navigator.pop(context);
-    await Navigator.push(context, MaterialPageRoute(builder: (context) => page));
-    _reloadData();
+  Widget _buildDrawerHeader() {
+    return DrawerHeader(
+      decoration: const BoxDecoration(color: Colors.transparent),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: [Colors.white.withOpacity(0.3), Colors.white.withOpacity(0.1)]),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+            ),
+            child: const Icon(Icons.admin_panel_settings_rounded, size: 40, color: Colors.white),
+          ),
+          const SizedBox(height: 16),
+          const Text('Admin Panel', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerCategoryHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 18, top: 16, bottom: 8, right: 16),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: Colors.white.withOpacity(0.6),
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.2,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToPage(Widget page) {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+    Navigator.push(context, MaterialPageRoute(builder: (context) => page)).then((_) => _reloadData());
   }
 
   Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap, {String? badge}) {
@@ -415,7 +484,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildStatsGrid(int projectCount, int buildingCount, int employeeCount) {
+  Widget _buildStatsGrid() {
+    final counts = _dataCounts;
+    final currencyFormat = NumberFormat.compactCurrency(locale: 'en_US', symbol: '\$');
+
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
@@ -424,10 +496,12 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       crossAxisSpacing: 16,
       childAspectRatio: 1.4,
       children: [
-        _buildStatCard('Projects', projectCount.toString(), Icons.apartment_rounded, secondaryViolet, 'Active'),
-        _buildStatCard('Buildings', buildingCount.toString(), Icons.business_rounded, primaryViolet, 'In Portfolio'),
-        _buildStatCard('Employees', employeeCount.toString(), Icons.people_rounded, accentRed, 'On Payroll'),
-        _buildStatCard('Revenue', '\$2.4M', Icons.monetization_on_rounded, accentOrange, '+18% This Quarter'),
+        _buildStatCard('Projects', counts['projects']!.toString(), Icons.apartment_rounded, secondaryViolet, 'Active Projects'),
+        _buildStatCard('Buildings', counts['buildings']!.toString(), Icons.business_rounded, primaryViolet, 'In Portfolio'),
+        _buildStatCard('Employees', counts['employees']!.toString(), Icons.people_rounded, accentOrange, 'On Payroll'),
+        _buildStatCard('Customers', counts['customers']!.toString(), Icons.groups_rounded, accentBlue, 'Total Clients'),
+        _buildStatCard('Total Credit', currencyFormat.format(_totalCredit), Icons.arrow_upward_rounded, accentGreen, 'Income Recorded'),
+        _buildStatCard('Total Debit', currencyFormat.format(_totalDebit), Icons.arrow_downward_rounded, accentRed, 'Expenses Paid'),
       ],
     );
   }
@@ -468,83 +542,38 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildRecentTransactions() {
+    if (_recentTransactions.isEmpty) {
+      return _buildEmptyState("No recent transactions to display.");
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Quick Actions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryViolet)),
-            TextButton(onPressed: () {}, child: const Text('View All', style: TextStyle(color: secondaryViolet))),
+            const Text('Recent Transactions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryViolet)),
+            TextButton(onPressed: () => _navigateToPage(const TransactionsPage()), child: const Text('See All', style: TextStyle(color: secondaryViolet))),
           ],
         ),
         const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 2.3,
-          children: [
-            _buildActionButton('Add Employee', Icons.person_add_rounded, accentRed, () => _navigateToPage(const EmployeesPage())),
-            _buildActionButton('New Project', Icons.add_business_rounded, secondaryViolet, () => _navigateToPage(const ProjectsPage())),
-            _buildActionButton('Add Building', Icons.business_rounded, primaryViolet, () => _navigateToPage(const BuildingsPage())),
-            _buildActionButton('Analytics', Icons.analytics_rounded, accentOrange, () => ScaffoldMessenger.of(context).showSnackBar(_buildComingSoonSnackBar('Analytics'))),
-          ],
+        Column(
+          children: _recentTransactions
+              .map((transaction) => _buildTransactionItem(transaction))
+              .toList(),
         ),
       ],
     );
   }
 
-  Widget _buildActionButton(String title, IconData icon, Color color, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [color.withOpacity(0.1), color.withOpacity(0.05)]),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3), width: 1.5),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13))),
-            Icon(Icons.arrow_forward_ios_rounded, color: color.withOpacity(0.5), size: 14),
-          ],
-        ),
-      ),
-    );
-  }
+  // UPDATED: Now aligns with the new Transaction model.
+  Widget _buildTransactionItem(Transaction transaction) {
+    final isCredit = transaction.isCredit;
+    final color = isCredit ? accentGreen : accentRed;
+    final icon = isCredit ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded;
+    final currencyFormat = NumberFormat.currency(locale: 'en_US', symbol: '\$');
+    final sign = isCredit ? '+' : '-';
 
-  Widget _buildRecentActivity() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Recent Activity', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryViolet)),
-            TextButton(onPressed: () {}, child: const Text('See All', style: TextStyle(color: secondaryViolet))),
-          ],
-        ),
-        const SizedBox(height: 16),
-        _buildActivityItem('New employee added', 'John Doe joined as Project Manager', Icons.person_add_rounded, accentRed, '2 hours ago'),
-        _buildActivityItem('Project completed', 'Sunset Tower construction finished', Icons.check_circle_rounded, accentGreen, '5 hours ago'),
-        _buildActivityItem('New building added', 'Ocean View Apartments to portfolio', Icons.business_rounded, primaryViolet, '1 day ago'),
-      ],
-    );
-  }
-
-  Widget _buildActivityItem(String title, String subtitle, IconData icon, Color color, String time) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -559,7 +588,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [color.withOpacity(0.2), color.withOpacity(0.1)]),
+              color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -569,22 +598,42 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: primaryViolet)),
+                Text(
+                  transaction.name ?? 'No Description',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: primaryViolet),
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 4),
-                Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey[600], height: 1.4)),
+                Text(
+                  transaction.date != null
+                      ? DateFormat('MMM dd, yyyy').format(transaction.date!)
+                      : 'No Date',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
               ],
             ),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Icon(Icons.access_time_rounded, size: 14, color: Colors.grey[400]),
-              const SizedBox(height: 4),
-              Text(time, style: TextStyle(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w500)),
-            ],
+          Text(
+            '$sign${currencyFormat.format(transaction.amount ?? 0.0)}',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32.0),
+        child: Column(
+          children: [
+            Icon(Icons.receipt_long_rounded, size: 40, color: Colors.grey[400]),
+            const SizedBox(height: 12),
+            Text(message, style: TextStyle(color: Colors.grey[600], fontSize: 15)),
+          ],
+        ),
       ),
     );
   }
