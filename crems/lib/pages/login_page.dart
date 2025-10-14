@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'profile_page.dart';
 
+// --- VIOLET COLOR PALETTE (Consistent with HomePage) ---
+const Color primaryViolet = Color(0xFF673AB7); // DeepPurple 500
+const Color primaryVioletDark = Color(0xFF4527A0); // DeepPurple 700
+const Color secondaryViolet = Color(0xFF9575CD); // DeepPurple 300
+// --- END OF PALETTE ---
+
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -55,6 +61,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         _passwordController.text,
       );
 
+      if (!mounted) return;
+
       setState(() {
         _isLoading = false;
       });
@@ -69,7 +77,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 Text(authResponse.message ?? 'Login successful!'),
               ],
             ),
-            backgroundColor: const Color(0xFF4CAF50),
+            backgroundColor: const Color(0xFF4CAF50), // Standard success green
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
@@ -91,7 +99,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 ),
               ],
             ),
-            backgroundColor: const Color(0xFFFF6B6B),
+            backgroundColor: const Color(0xFFFF6B6B), // Standard error red
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
@@ -104,14 +112,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF1A237E),
-              const Color(0xFF1A237E).withOpacity(0.8),
-              const Color(0xFF00BFA5).withOpacity(0.6),
+              primaryViolet,
+              primaryVioletDark,
             ],
           ),
         ),
@@ -139,11 +146,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                           children: [
                             Container(
                               padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    Theme.of(context).primaryColor,
-                                    Theme.of(context).colorScheme.secondary,
+                                    primaryViolet,
+                                    secondaryViolet,
                                   ],
                                 ),
                                 shape: BoxShape.circle,
@@ -160,7 +167,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1A237E),
+                                color: primaryViolet,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -181,12 +188,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 prefixIcon: Container(
                                   margin: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                    color: primaryViolet.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: Icon(
+                                  child: const Icon(
                                     Icons.email_outlined,
-                                    color: Theme.of(context).primaryColor,
+                                    color: primaryViolet,
                                   ),
                                 ),
                               ),
@@ -194,7 +201,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your email';
                                 }
-                                if (!value.contains('@')) {
+                                if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
                                   return 'Please enter a valid email';
                                 }
                                 return null;
@@ -210,19 +217,17 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 prefixIcon: Container(
                                   margin: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                    color: primaryViolet.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: Icon(
+                                  child: const Icon(
                                     Icons.lock_outline,
-                                    color: Theme.of(context).primaryColor,
+                                    color: primaryViolet,
                                   ),
                                 ),
                                 suffixIcon: IconButton(
                                   icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
+                                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                                     color: Colors.grey,
                                   ),
                                   onPressed: () {
@@ -250,7 +255,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 child: const Text(
                                   'Forgot Password?',
                                   style: TextStyle(
-                                    color: Color(0xFF00BFA5),
+                                    color: secondaryViolet,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -263,10 +268,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               child: ElevatedButton(
                                 onPressed: _isLoading ? null : _login,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF1A237E),
+                                  backgroundColor: primaryViolet,
                                   foregroundColor: Colors.white,
                                   elevation: 4,
-                                  shadowColor: const Color(0xFF1A237E).withOpacity(0.5),
+                                  shadowColor: primaryViolet.withOpacity(0.5),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -303,7 +308,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                   child: const Text(
                                     'Sign Up',
                                     style: TextStyle(
-                                      color: Color(0xFF00BFA5),
+                                      color: secondaryViolet,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),

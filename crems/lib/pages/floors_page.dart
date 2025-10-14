@@ -6,6 +6,15 @@ import '../services/building_service.dart';
 import '../services/floor_service.dart';
 import 'floor_form_page.dart';
 
+// --- VIOLET COLOR PALETTE (Consistent with other pages) ---
+const Color primaryViolet = Color(0xFF673AB7);
+const Color secondaryViolet = Color(0xFF9575CD);
+const Color backgroundLight = Color(0xFFF5F5F5);
+const Color accentRed = Color(0xFFFF6B6B);
+const Color accentOrange = Color(0xFFFFB74D);
+const Color accentGreen = Color(0xFF4CAF50);
+// --- END OF PALETTE ---
+
 class FloorsPage extends StatefulWidget {
   const FloorsPage({Key? key}) : super(key: key);
 
@@ -14,13 +23,11 @@ class FloorsPage extends StatefulWidget {
 }
 
 class _FloorsPageState extends State<FloorsPage> {
-  // State for data, loading, and errors
   List<Floor> _allFloors = [];
   List<Floor> _filteredFloors = [];
   bool _isLoading = true;
   String? _errorMessage;
 
-  // State for filters
   final TextEditingController _searchController = TextEditingController();
   List<Building> _buildingsForFilter = [];
   Building? _selectedBuilding;
@@ -44,14 +51,8 @@ class _FloorsPageState extends State<FloorsPage> {
       _isLoading = true;
       _errorMessage = null;
     });
-
     try {
-      // Fetch floors and buildings in parallel
-      final results = await Future.wait([
-        FloorService.getAllFloors(),
-        BuildingService.getAllBuildings(),
-      ]);
-
+      final results = await Future.wait([FloorService.getAllFloors(), BuildingService.getAllBuildings()]);
       if (mounted) {
         setState(() {
           _allFloors = results[0] as List<Floor>;
@@ -74,13 +75,9 @@ class _FloorsPageState extends State<FloorsPage> {
     final query = _searchController.text.toLowerCase();
     setState(() {
       _filteredFloors = _allFloors.where((floor) {
-        // Search filter
         final nameMatches = floor.name?.toLowerCase().contains(query) ?? false;
         final buildingNameMatches = floor.building?.name?.toLowerCase().contains(query) ?? false;
-
-        // Building filter
         final buildingMatches = _selectedBuilding == null || floor.building?.id == _selectedBuilding!.id;
-
         return (nameMatches || buildingNameMatches) && buildingMatches;
       }).toList();
     });
@@ -103,14 +100,10 @@ class _FloorsPageState extends State<FloorsPage> {
       final success = await FloorService.deleteFloor(id);
       if (mounted) {
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            _buildStatusSnackBar('Floor deleted successfully', Icons.check_circle, Colors.green),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(_buildStatusSnackBar('Floor deleted successfully', Icons.check_circle, accentGreen));
           _loadInitialData();
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            _buildStatusSnackBar('Failed to delete floor', Icons.error, Colors.red),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(_buildStatusSnackBar('Failed to delete floor', Icons.error, accentRed));
         }
       }
     }
@@ -119,7 +112,10 @@ class _FloorsPageState extends State<FloorsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundLight,
       appBar: AppBar(
+        backgroundColor: primaryViolet,
+        foregroundColor: Colors.white,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -127,7 +123,7 @@ class _FloorsPageState extends State<FloorsPage> {
             if (!_isLoading)
               Text(
                 '${_filteredFloors.length} floor${_filteredFloors.length != 1 ? 's' : ''} found',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70),
               ),
           ],
         ),
@@ -141,34 +137,27 @@ class _FloorsPageState extends State<FloorsPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const FloorFormPage()),
-          );
-          if (result == true) {
-            _loadInitialData();
-          }
+          final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const FloorFormPage()));
+          if (result == true) _loadInitialData();
         },
-        backgroundColor: const Color(0xFF00BFA5),
-        icon: const Icon(Icons.add),
-        label: const Text('New Floor'),
+        backgroundColor: primaryViolet,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('New Floor', style: TextStyle(color: Colors.white)),
       ),
       body: Column(
         children: [
           _buildSearchAndFilterBar(),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator(color: primaryViolet))
                 : _errorMessage != null
                 ? _buildErrorWidget()
                 : _filteredFloors.isEmpty
                 ? _buildEmptyStateWidget()
                 : ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
               itemCount: _filteredFloors.length,
-              itemBuilder: (context, index) {
-                return _buildFloorCard(_filteredFloors[index]);
-              },
+              itemBuilder: (context, index) => _buildFloorCard(_filteredFloors[index]),
             ),
           ),
         ],
@@ -179,20 +168,18 @@ class _FloorsPageState extends State<FloorsPage> {
   Widget _buildSearchAndFilterBar() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Column(
         children: [
           TextField(
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'Search by floor or building name...',
-              prefixIcon: const Icon(Icons.search, color: Color(0xFF1A237E)),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () => _searchController.clear(),
-              )
-                  : null,
+              prefixIcon: const Icon(Icons.search, color: primaryViolet),
+              suffixIcon: _searchController.text.isNotEmpty ? IconButton(icon: const Icon(Icons.clear), onPressed: () => _searchController.clear()) : null,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              filled: true,
+              fillColor: backgroundLight,
             ),
           ),
           const SizedBox(height: 12),
@@ -200,19 +187,15 @@ class _FloorsPageState extends State<FloorsPage> {
             value: _selectedBuilding,
             decoration: InputDecoration(
               labelText: 'Filter by Building',
-              prefixIcon: const Icon(Icons.business_rounded, color: Color(0xFF00BFA5)),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              prefixIcon: const Icon(Icons.business_rounded, color: secondaryViolet),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              filled: true,
+              fillColor: backgroundLight,
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
             ),
             items: [
-              const DropdownMenuItem<Building?>(
-                value: null,
-                child: Text('All Buildings'),
-              ),
-              ..._buildingsForFilter.map((building) => DropdownMenuItem(
-                value: building,
-                child: Text(building.name ?? 'Unnamed Building'),
-              )),
+              const DropdownMenuItem<Building?>(value: null, child: Text('All Buildings')),
+              ..._buildingsForFilter.map((building) => DropdownMenuItem(value: building, child: Text(building.name ?? 'Unnamed Building'))),
             ],
             onChanged: (value) => _filterByBuilding(value),
           ),
@@ -221,109 +204,107 @@ class _FloorsPageState extends State<FloorsPage> {
     );
   }
 
+  // --- UPDATED FLOOR CARD WIDGET FOR "FLOATING" EFFECT ---
   Widget _buildFloorCard(Floor floor) {
     final daysRemaining = floor.expectedEndDate?.difference(DateTime.now()).inDays ?? 0;
     final isOverdue = daysRemaining < 0 && floor.expectedEndDate != null;
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.0),
+        border: Border.all(color: Colors.grey.shade200, width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 20.0,
+            spreadRadius: 4.0,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12.0),
+          onTap: () {
+            // Future navigation to detail page
+            print('Tapped on floor: ${floor.name}');
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(Icons.layers_outlined, color: Theme.of(context).primaryColor, size: 28),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        floor.name ?? 'N/A',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A237E)),
-                      ),
-                      const SizedBox(height: 4),
-                      if (floor.building != null)
-                        Text(
-                          'Building: ${floor.building!.name}',
-                          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                        ),
-                    ],
-                  ),
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => FloorFormPage(floor: floor)),
-                      ).then((result) {
-                        if (result == true) _loadInitialData();
-                      });
-                    } else if (value == 'delete') {
-                      _deleteFloor(floor.id!, floor.name!);
-                    }
-                  },
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                    const PopupMenuItem<String>(
-                      value: 'edit',
-                      child: ListTile(leading: Icon(Icons.edit_outlined), title: Text('Edit')),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(color: primaryViolet.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                      child: const Icon(Icons.layers_outlined, color: primaryViolet, size: 28),
                     ),
-                    const PopupMenuItem<String>(
-                      value: 'delete',
-                      child: ListTile(leading: Icon(Icons.delete_outline, color: Colors.red), title: Text('Delete', style: TextStyle(color: Colors.red))),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(floor.name ?? 'N/A', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryViolet)),
+                          const SizedBox(height: 4),
+                          if (floor.building != null) Text('Building: ${floor.building!.name}', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+                        ],
+                      ),
+                    ),
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => FloorFormPage(floor: floor))).then((result) {
+                            if (result == true) _loadInitialData();
+                          });
+                        } else if (value == 'delete') {
+                          _deleteFloor(floor.id!, floor.name!);
+                        }
+                      },
+                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                        const PopupMenuItem<String>(value: 'edit', child: ListTile(leading: Icon(Icons.edit_outlined, color: primaryViolet), title: Text('Edit'), dense: true, contentPadding: EdgeInsets.zero)),
+                        const PopupMenuItem<String>(value: 'delete', child: ListTile(leading: Icon(Icons.delete_outline, color: accentRed), title: Text('Delete', style: TextStyle(color: accentRed)), dense: true, contentPadding: EdgeInsets.zero)),
+                      ],
                     ),
                   ],
                 ),
+                const Divider(height: 24),
+                Wrap(
+                  spacing: 8.0,
+                  runSpacing: 8.0,
+                  children: [
+                    _buildInfoChip(Icons.business_outlined, floor.building?.type?.replaceAll('_', ' ') ?? 'N/A', color: secondaryViolet),
+                    if (floor.expectedEndDate != null)
+                      _buildInfoChip(
+                        isOverdue ? Icons.warning_amber_rounded : Icons.calendar_today_outlined,
+                        isOverdue ? 'Overdue by ${daysRemaining.abs()} days' : '$daysRemaining days remaining',
+                        color: isOverdue ? accentRed : accentGreen,
+                      ),
+                  ],
+                )
               ],
             ),
-            const Divider(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildInfoChip(Icons.business_outlined, floor.building?.type?.replaceAll('_', ' ') ?? 'N/A'),
-                if (floor.expectedEndDate != null)
-                  _buildInfoChip(
-                    isOverdue ? Icons.warning_amber_rounded : Icons.calendar_today_outlined,
-                    isOverdue ? 'Overdue by ${daysRemaining.abs()} days' : '$daysRemaining days remaining',
-                    color: isOverdue ? Colors.red : Colors.green,
-                  ),
-              ],
-            )
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildInfoChip(IconData icon, String label, {Color? color}) {
+    final chipColor = color ?? Colors.grey;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: (color ?? Colors.grey).withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
+      decoration: BoxDecoration(color: chipColor.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color ?? Colors.grey[700]),
+          Icon(icon, size: 14, color: chipColor),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color ?? Colors.grey[700]),
-          ),
+          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: chipColor)),
         ],
       ),
     );
@@ -332,22 +313,13 @@ class _FloorsPageState extends State<FloorsPage> {
   Widget _buildDeleteDialog(String name) {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Row(
-        children: const [
-          Icon(Icons.warning_amber_rounded, color: Color(0xFFFF6B6B)),
-          SizedBox(width: 12),
-          Text('Confirm Delete'),
-        ],
-      ),
+      title: const Row(children: [Icon(Icons.warning_amber_rounded, color: accentRed), SizedBox(width: 12), Text('Confirm Delete')]),
       content: Text('Are you sure you want to delete "$name"?'),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
-        ),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
         ElevatedButton(
           onPressed: () => Navigator.pop(context, true),
-          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B6B)),
+          style: ElevatedButton.styleFrom(backgroundColor: accentRed, foregroundColor: Colors.white),
           child: const Text('Delete'),
         ),
       ],
@@ -378,7 +350,7 @@ class _FloorsPageState extends State<FloorsPage> {
               onPressed: _loadInitialData,
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A237E)),
+              style: ElevatedButton.styleFrom(backgroundColor: primaryViolet, foregroundColor: Colors.white),
             ),
           ],
         ),
@@ -401,6 +373,7 @@ class _FloorsPageState extends State<FloorsPage> {
           Text(
             _allFloors.isEmpty ? 'Add your first floor to get started' : 'Try adjusting your search or filter',
             style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            textAlign: TextAlign.center,
           ),
           if (_allFloors.isNotEmpty && (_searchController.text.isNotEmpty || _selectedBuilding != null)) ...[
             const SizedBox(height: 16),
@@ -411,7 +384,7 @@ class _FloorsPageState extends State<FloorsPage> {
               },
               icon: const Icon(Icons.clear_all),
               label: const Text('Clear Filters'),
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A237E)),
+              style: ElevatedButton.styleFrom(backgroundColor: primaryViolet, foregroundColor: Colors.white),
             ),
           ],
         ],

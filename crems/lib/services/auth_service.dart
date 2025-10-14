@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/auth_response.dart';
-import '../models/user.dart';
 
 class AuthService {
   static const String baseUrl = 'http://localhost:8080/api/auth';

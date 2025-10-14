@@ -5,6 +5,14 @@ import '../models/floor.dart';
 import '../services/building_service.dart';
 import '../services/floor_service.dart';
 
+// --- VIOLET COLOR PALETTE (Consistent with other pages) ---
+const Color primaryViolet = Color(0xFF673AB7);
+const Color secondaryViolet = Color(0xFF9575CD);
+const Color backgroundLight = Color(0xFFF5F5F5);
+const Color accentRed = Color(0xFFFF6B6B);
+const Color accentGreen = Color(0xFF4CAF50);
+// --- END OF PALETTE ---
+
 class FloorFormPage extends StatefulWidget {
   final Floor? floor;
 
@@ -27,9 +35,6 @@ class _FloorFormPageState extends State<FloorFormPage> {
   void initState() {
     super.initState();
     _loadInitialData();
-    if (widget.floor != null) {
-      _populateForm();
-    }
   }
 
   void _populateForm() {
@@ -43,20 +48,23 @@ class _FloorFormPageState extends State<FloorFormPage> {
     setState(() => _isLoadingData = true);
     try {
       final buildings = await BuildingService.getAllBuildings();
-      setState(() {
-        _buildings = buildings;
-        // If editing, ensure the selected building is in the list
-        if (widget.floor?.building != null) {
-          _selectedBuilding = _buildings.firstWhere((b) => b.id == widget.floor!.building!.id);
-        }
-        _isLoadingData = false;
-      });
-    } catch (e) {
-      setState(() => _isLoadingData = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load buildings: $e'), backgroundColor: Colors.red),
-        );
+        setState(() {
+          _buildings = buildings;
+          if (widget.floor != null) {
+            _populateForm();
+            // Ensure the selected building is the same object from the newly fetched list
+            if (widget.floor!.building != null) {
+              _selectedBuilding = _buildings.firstWhere((b) => b.id == widget.floor!.building!.id, orElse: () => _buildings.first);
+            }
+          }
+          _isLoadingData = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingData = false);
+        _showErrorSnackBar('Failed to load buildings: $e');
       }
     }
   }
@@ -67,22 +75,24 @@ class _FloorFormPageState extends State<FloorFormPage> {
       initialDate: _expectedEndDate ?? DateTime.now().add(const Duration(days: 30)),
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(primary: primaryViolet, onPrimary: Colors.white, onSurface: primaryViolet),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null && picked != _expectedEndDate) {
-      setState(() {
-        _expectedEndDate = picked;
-      });
+      setState(() => _expectedEndDate = picked);
     }
   }
 
   Future<void> _saveFloor() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
     if (_selectedBuilding == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a building'), backgroundColor: Colors.red),
-      );
+      _showErrorSnackBar('Please select a building');
       return;
     }
     setState(() => _isLoading = true);
@@ -94,49 +104,38 @@ class _FloorFormPageState extends State<FloorFormPage> {
         building: _selectedBuilding,
       );
 
-      final success = widget.floor == null
-          ? await FloorService.createFloor(floor)
-          : await FloorService.updateFloor(floor);
+      final success = widget.floor == null ? await FloorService.createFloor(floor) : await FloorService.updateFloor(floor);
 
       if (mounted) {
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Floor saved successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Floor saved successfully'), backgroundColor: accentGreen));
           Navigator.pop(context, true);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to save floor'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          _showErrorSnackBar('Failed to save floor');
         }
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('An error occurred: $e'), backgroundColor: Colors.red),
-        );
-      }
+      if (mounted) _showErrorSnackBar('An error occurred: $e');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: accentRed));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundLight,
       appBar: AppBar(
         title: Text(widget.floor == null ? 'New Floor' : 'Edit Floor'),
+        backgroundColor: primaryViolet,
+        foregroundColor: Colors.white,
       ),
       body: _isLoadingData
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: primaryViolet))
           : SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
@@ -146,60 +145,38 @@ class _FloorFormPageState extends State<FloorFormPage> {
             children: [
               _buildSectionTitle('Floor Details'),
               const SizedBox(height: 16),
-
-              _buildTextField(
-                controller: _nameController,
-                label: 'Floor Name / Number',
-                icon: Icons.layers,
-                validator: (value) =>
-                value == null || value.trim().isEmpty ? 'Please enter a name' : null,
-              ),
+              _buildTextField(controller: _nameController, label: 'Floor Name / Number', icon: Icons.layers_outlined, validator: (value) => value == null || value.trim().isEmpty ? 'Please enter a name' : null),
               const SizedBox(height: 16),
-
               DropdownButtonFormField<Building>(
                 value: _selectedBuilding,
-                decoration: _buildInputDecoration(
-                    'Building', Icons.business_rounded),
-                items: _buildings
-                    .map((building) => DropdownMenuItem(
-                  value: building,
-                  child: Text(building.name ?? 'Unnamed Building'),
-                ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedBuilding = value;
-                  });
-                },
+                decoration: _buildInputDecoration('Building', Icons.business_rounded),
+                items: _buildings.map((building) => DropdownMenuItem(value: building, child: Text(building.name ?? 'Unnamed Building'))).toList(),
+                onChanged: (value) => setState(() => _selectedBuilding = value),
                 validator: (value) => value == null ? 'Please select a building' : null,
               ),
               const SizedBox(height: 16),
-
               InkWell(
                 onTap: () => _selectDate(context),
                 child: InputDecorator(
-                  decoration: _buildInputDecoration('Expected Completion Date', Icons.calendar_today),
+                  decoration: _buildInputDecoration('Expected Completion Date', Icons.calendar_today_outlined, color: secondaryViolet),
                   child: Text(
-                    _expectedEndDate != null
-                        ? DateFormat('MMMM dd, yyyy').format(_expectedEndDate!)
-                        : 'Not Set',
-                    style: const TextStyle(fontSize: 16),
+                    _expectedEndDate != null ? DateFormat('MMMM dd, yyyy').format(_expectedEndDate!) : 'Not Set',
+                    style: const TextStyle(fontSize: 16, color: secondaryViolet),
                   ),
                 ),
               ),
               const SizedBox(height: 32),
-
               SizedBox(
                 height: 56,
                 child: ElevatedButton.icon(
                   onPressed: _isLoading ? null : _saveFloor,
-                  icon: _isLoading ? Container() : Icon(widget.floor == null ? Icons.add : Icons.check),
-                  label: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(widget.floor == null ? 'Create Floor' : 'Update Floor'),
+                  icon: _isLoading ? const SizedBox.shrink() : Icon(widget.floor == null ? Icons.add_circle_outline : Icons.check_circle_outline),
+                  label: _isLoading ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2) : Text(widget.floor == null ? 'Create Floor' : 'Update Floor'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00BFA5),
-                    foregroundColor: Colors.white,
+                      backgroundColor: primaryViolet,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
                   ),
                 ),
               ),
@@ -210,20 +187,18 @@ class _FloorFormPageState extends State<FloorFormPage> {
     );
   }
 
-  InputDecoration _buildInputDecoration(String label, IconData icon) {
+  InputDecoration _buildInputDecoration(String label, IconData icon, {Color? color}) {
+    final iconColor = color ?? primaryViolet;
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(icon, color: Theme.of(context).primaryColor),
+      labelStyle: TextStyle(color: Colors.grey[600]),
+      prefixIcon: Icon(icon, color: iconColor),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: primaryViolet, width: 2)),
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    String? Function(String?)? validator,
-  }) {
+  Widget _buildTextField({required TextEditingController controller, required String label, required IconData icon, String? Function(String?)? validator}) {
     return TextFormField(
       controller: controller,
       decoration: _buildInputDecoration(label, icon),
@@ -232,13 +207,12 @@ class _FloorFormPageState extends State<FloorFormPage> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-        color: Color(0xFF1A237E),
-      ),
+    return Row(
+      children: [
+        Container(width: 4, height: 24, decoration: BoxDecoration(gradient: const LinearGradient(colors: [primaryViolet, secondaryViolet]), borderRadius: BorderRadius.circular(2))),
+        const SizedBox(width: 12),
+        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryViolet)),
+      ],
     );
   }
 }

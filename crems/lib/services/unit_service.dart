@@ -40,7 +40,9 @@ class UnitService {
 
   static Future<List<Unit>> getUnitsByBuildingId(int buildingId) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/productdetails/$buildingId'), headers: _getHeaders());
+      final response = await http.get(Uri.parse('$baseUrl/productdetails/$buildingId'), headers: {
+        'Content-Type': 'application/json'
+      });
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
         return data.map((json) => Unit.fromJson(json)).toList();

@@ -4,6 +4,15 @@ import '../models/employee.dart';
 import '../services/employee_service.dart';
 import 'employee_form_page.dart';
 
+// --- VIOLET COLOR PALETTE (Consistent with other pages) ---
+const Color primaryViolet = Color(0xFF673AB7);
+const Color secondaryViolet = Color(0xFF9575CD);
+const Color backgroundLight = Color(0xFFF5F5F5);
+const Color accentRed = Color(0xFFFF6B6B);
+const Color accentOrange = Color(0xFFFFB74D);
+const Color accentGreen = Color(0xFF4CAF50);
+// --- END OF PALETTE ---
+
 class EmployeesPage extends StatefulWidget {
   const EmployeesPage({Key? key}) : super(key: key);
 
@@ -19,22 +28,20 @@ class _EmployeesPageState extends State<EmployeesPage> {
   final TextEditingController _searchController = TextEditingController();
   String? selectedRole;
 
-  final List<String> roles = [
-    'All', 'ADMIN', 'PROJECT_MANAGER', 'SITE_MANAGER', 'LABOUR',
-  ];
+  final List<String> roles = ['All', 'ADMIN', 'PROJECT_MANAGER', 'SITE_MANAGER', 'LABOUR'];
 
   final Map<String, Color> roleColors = {
-    'ADMIN': const Color(0xFFFF6B6B),
-    'PROJECT_MANAGER': const Color(0xFF1A237E),
-    'SITE_MANAGER': const Color(0xFF00BFA5),
-    'LABOUR': const Color(0xFFFFB74D),
+    'ADMIN': accentRed,
+    'PROJECT_MANAGER': primaryViolet,
+    'SITE_MANAGER': secondaryViolet,
+    'LABOUR': accentOrange,
   };
 
   final Map<String, IconData> roleIcons = {
-    'ADMIN': Icons.admin_panel_settings,
-    'PROJECT_MANAGER': Icons.engineering,
-    'SITE_MANAGER': Icons.construction,
-    'LABOUR': Icons.handyman,
+    'ADMIN': Icons.admin_panel_settings_outlined,
+    'PROJECT_MANAGER': Icons.engineering_outlined,
+    'SITE_MANAGER': Icons.construction_outlined,
+    'LABOUR': Icons.handyman_outlined,
   };
 
   @override
@@ -54,15 +61,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
     final query = _searchController.text.toLowerCase();
     setState(() {
       filteredEmployees = employees.where((employee) {
-        final matchesSearch = (employee.name?.toLowerCase() ?? '').contains(query) ||
-            (employee.email?.toLowerCase() ?? '').contains(query) ||
-            (employee.role ?? '').toLowerCase().contains(query) ||
-            (employee.phone ?? '').toLowerCase().contains(query);
-
-        final matchesRole = selectedRole == null ||
-            selectedRole == 'All' ||
-            employee.role == selectedRole;
-
+        final matchesSearch = (employee.name?.toLowerCase() ?? '').contains(query) || (employee.email?.toLowerCase() ?? '').contains(query) || (employee.role ?? '').toLowerCase().contains(query) || (employee.phone ?? '').toLowerCase().contains(query);
+        final matchesRole = selectedRole == null || selectedRole == 'All' || employee.role == selectedRole;
         return matchesSearch && matchesRole;
       }).toList();
     });
@@ -99,23 +99,15 @@ class _EmployeesPageState extends State<EmployeesPage> {
   }
 
   Future<void> _deleteEmployee(int id, String name) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => _buildDeleteDialog(name),
-    );
-
+    final confirmed = await showDialog<bool>(context: context, builder: (context) => _buildDeleteDialog(name));
     if (confirmed == true && mounted) {
       final success = await EmployeeService.deleteEmployee(id);
       if (mounted) {
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            _buildStatusSnackBar('Employee deleted successfully', Icons.check_circle, Colors.green),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(_buildStatusSnackBar('Employee deleted successfully', Icons.check_circle, accentGreen));
           _loadEmployees();
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            _buildStatusSnackBar('Failed to delete employee', Icons.error, Colors.red),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(_buildStatusSnackBar('Failed to delete employee', Icons.error, accentRed));
         }
       }
     }
@@ -137,64 +129,46 @@ class _EmployeesPageState extends State<EmployeesPage> {
     return DateFormat('MMM dd, yyyy').format(date);
   }
 
-  int _getDaysSinceJoining(DateTime? joiningDate) {
-    if (joiningDate == null) return 0;
-    return DateTime.now().difference(joiningDate).inDays;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundLight,
       appBar: AppBar(
+        backgroundColor: primaryViolet,
+        foregroundColor: Colors.white,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Employees'),
             if (!isLoading)
-              Text(
-                '${filteredEmployees.length} employee${filteredEmployees.length != 1 ? 's' : ''}',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
-              ),
+              Text('${filteredEmployees.length} employee${filteredEmployees.length != 1 ? 's' : ''}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70)),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadEmployees,
-            tooltip: 'Refresh',
-          ),
-        ],
+        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _loadEmployees, tooltip: 'Refresh')],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const EmployeeFormPage()),
-          );
-          if (result == true) {
-            _loadEmployees();
-          }
+          final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const EmployeeFormPage()));
+          if (result == true) _loadEmployees();
         },
-        backgroundColor: const Color(0xFF00BFA5),
-        icon: const Icon(Icons.person_add),
-        label: const Text('Add Employee'),
+        backgroundColor: primaryViolet,
+        icon: const Icon(Icons.person_add, color: Colors.white),
+        label: const Text('Add Employee', style: TextStyle(color: Colors.white)),
       ),
       body: Column(
         children: [
           _buildSearchAndFilterBar(),
           Expanded(
             child: isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator(color: primaryViolet))
                 : errorMessage != null
                 ? _buildErrorWidget()
                 : filteredEmployees.isEmpty
                 ? _buildEmptyStateWidget()
                 : ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
               itemCount: filteredEmployees.length,
-              itemBuilder: (context, index) {
-                return _buildEmployeeCard(filteredEmployees[index]);
-              },
+              itemBuilder: (context, index) => _buildEmployeeCard(filteredEmployees[index]),
             ),
           ),
         ],
@@ -212,8 +186,10 @@ class _EmployeesPageState extends State<EmployeesPage> {
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'Search by name, email, phone...',
-              prefixIcon: const Icon(Icons.search, color: Color(0xFF1A237E)),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              prefixIcon: const Icon(Icons.search, color: primaryViolet),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              filled: true,
+              fillColor: backgroundLight,
             ),
           ),
           const SizedBox(height: 8),
@@ -227,15 +203,12 @@ class _EmployeesPageState extends State<EmployeesPage> {
                   child: FilterChip(
                     label: Text(role.replaceAll('_', ' ')),
                     selected: isSelected,
-                    onSelected: (selected) {
-                      _filterByRole(role == 'All' ? null : role);
-                    },
+                    onSelected: (selected) => _filterByRole(role == 'All' ? null : role),
+                    backgroundColor: backgroundLight,
                     selectedColor: _getRoleColor(role).withOpacity(0.2),
                     checkmarkColor: _getRoleColor(role),
-                    labelStyle: TextStyle(
-                      color: isSelected ? _getRoleColor(role) : Colors.grey[700],
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
+                    labelStyle: TextStyle(color: isSelected ? _getRoleColor(role) : Colors.grey[700], fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? _getRoleColor(role).withOpacity(0.5) : Colors.grey.shade300)),
                   ),
                 );
               }).toList(),
@@ -246,265 +219,132 @@ class _EmployeesPageState extends State<EmployeesPage> {
     );
   }
 
-  Color _getRoleColor(String role) {
-    return roleColors[role] ?? const Color(0xFF757575);
-  }
+  Color _getRoleColor(String role) => roleColors[role] ?? const Color(0xFF757575);
 
+  // --- UPDATED EMPLOYEE CARD WIDGET FOR "FLOATING" EFFECT ---
   Widget _buildEmployeeCard(Employee employee) {
     final imageUrl = _getImageUrl(employee.photo);
-    final daysSinceJoining = _getDaysSinceJoining(employee.joiningDate);
-    final isLongTerm = daysSinceJoining > 365;
+    final roleColor = _getRoleColor(employee.role ?? '');
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.0),
+        border: Border.all(color: Colors.grey.shade200, width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 20.0,
+            spreadRadius: 4.0,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12.0),
+          onTap: () {
+            // Future navigation to detail page
+            print('Tapped on ${employee.name}');
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        _getRoleColor(employee.role ?? '').withOpacity(0.8),
-                        _getRoleColor(employee.role ?? ''),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: roleColor.withOpacity(0.2),
+                      backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+                      onBackgroundImageError: (_, __) {},
+                      child: imageUrl.isEmpty ? _buildAvatarFallback(employee, roleColor) : null,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(employee.name ?? 'N/A', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryViolet)),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(color: roleColor.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(roleIcons[employee.role] ?? Icons.person, size: 14, color: roleColor),
+                                const SizedBox(width: 6),
+                                Text((employee.role ?? 'N/A').replaceAll('_', ' '), style: TextStyle(fontSize: 11, color: roleColor, fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => EmployeeFormPage(employee: employee))).then((result) { if (result == true) _loadEmployees(); });
+                        } else if (value == 'delete') {
+                          _deleteEmployee(employee.id!, employee.name!);
+                        }
+                      },
+                      itemBuilder: (BuildContext context) => [
+                        const PopupMenuItem<String>(value: 'edit', child: ListTile(leading: Icon(Icons.edit_outlined, color: primaryViolet), title: Text('Edit'), dense: true, contentPadding: EdgeInsets.zero)),
+                        const PopupMenuItem<String>(value: 'delete', child: ListTile(leading: Icon(Icons.delete_outline, color: accentRed), title: Text('Delete', style: TextStyle(color: accentRed)), dense: true, contentPadding: EdgeInsets.zero)),
                       ],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: imageUrl.isNotEmpty
-                        ? Image.network(
-                      imageUrl,
-                      width: 40,
-                      height: 40,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _buildAvatarFallback(employee),
-                    )
-                        : _buildAvatarFallback(employee),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        employee.name ?? 'N/A',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A237E)),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _getRoleColor(employee.role ?? '').withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              roleIcons[employee.role] ?? Icons.person,
-                              size: 14,
-                              color: _getRoleColor(employee.role ?? ''),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              (employee.role ?? 'N/A').replaceAll('_', ' '),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: _getRoleColor(employee.role ?? ''),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => EmployeeFormPage(employee: employee)),
-                      ).then((result) {
-                        if (result == true) _loadEmployees();
-                      });
-                    } else if (value == 'delete') {
-                      _deleteEmployee(employee.id!, employee.name!);
-                    }
-                  },
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                    const PopupMenuItem<String>(
-                      value: 'edit',
-                      child: ListTile(leading: Icon(Icons.edit_outlined), title: Text('Edit')),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'delete',
-                      child: ListTile(leading: Icon(Icons.delete_outline, color: Colors.red), title: Text('Delete', style: TextStyle(color: Colors.red))),
+                      icon: const Icon(Icons.more_vert, color: primaryViolet),
                     ),
                   ],
-                  icon: const Icon(Icons.more_vert),
+                ),
+                const Divider(height: 24),
+                Wrap(spacing: 16.0, runSpacing: 8.0, children: [
+                  _buildInfoChip(Icons.email_outlined, employee.email ?? 'No Email'),
+                  _buildInfoChip(Icons.phone_outlined, employee.phone ?? 'No Phone'),
+                ]),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(child: _buildInfoCard(Icons.attach_money, 'Salary', _formatCurrency(employee.salary), accentGreen)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildInfoCard(Icons.calendar_today, 'Joined', _formatDate(employee.joiningDate), primaryViolet)),
+                  ],
                 ),
               ],
             ),
-            const Divider(height: 24),
-            Row(
-              children: [
-                Expanded(child: _buildInfoChip(Icons.email_outlined, employee.email ?? 'No Email')),
-                const SizedBox(width: 12),
-                _buildInfoChip(Icons.phone_outlined, employee.phone ?? 'No Phone'),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(child: _buildInfoCard(Icons.attach_money, 'Salary', _formatCurrency(employee.salary), const Color(0xFF4CAF50))),
-                const SizedBox(width: 12),
-                Expanded(child: _buildInfoCard(Icons.calendar_today, 'Joined', _formatDate(employee.joiningDate), const Color(0xFF1A237E))),
-              ],
-            ),
-            if (employee.joiningDate != null) ...[
-              const SizedBox(height: 12),
-              _buildTenureIndicator(isLongTerm, daysSinceJoining, employee.status),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  // --- Helper Widgets ---
-
-  Widget _buildAvatarFallback(Employee employee) {
-    return SizedBox(
-      width: 40,
-      height: 40,
-      child: Center(
-        child: Text(
-          employee.name?.substring(0, 1).toUpperCase() ?? 'E',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildAvatarFallback(Employee employee, Color color) {
+    return Center(child: Text(employee.name != null && employee.name!.isNotEmpty ? employee.name![0].toUpperCase() : 'E', style: TextStyle(color: color, fontSize: 24, fontWeight: FontWeight.bold)));
   }
 
   Widget _buildInfoChip(IconData icon, String text) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: Colors.grey[600]),
-        const SizedBox(width: 4),
-        Flexible(
-          child: Text(
-            text,
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTenureIndicator(bool isLongTerm, int daysSinceJoining, bool? status) {
-    final tenureColor = isLongTerm ? const Color(0xFF4CAF50) : const Color(0xFF00BFA5);
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: tenureColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            isLongTerm ? Icons.emoji_events : Icons.access_time,
-            color: tenureColor,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              isLongTerm
-                  ? '${(daysSinceJoining / 365).floor()} year${(daysSinceJoining / 365).floor() > 1 ? 's' : ''} with company'
-                  : '$daysSinceJoining days with company',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: tenureColor,
-              ),
-            ),
-          ),
-          if (status == true)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4CAF50),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                'Active',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      Icon(icon, size: 14, color: Colors.grey[600]),
+      const SizedBox(width: 6),
+      Flexible(child: Text(text, style: TextStyle(fontSize: 12, color: Colors.grey[600]), overflow: TextOverflow.ellipsis)),
+    ]);
   }
 
   Widget _buildInfoCard(IconData icon, String label, String value, Color color) {
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
+          Row(children: [Icon(icon, size: 16, color: color), const SizedBox(width: 6), Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w500))]),
           const SizedBox(height: 6),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color), maxLines: 1, overflow: TextOverflow.ellipsis),
         ],
       ),
     );
@@ -513,41 +353,17 @@ class _EmployeesPageState extends State<EmployeesPage> {
   AlertDialog _buildDeleteDialog(String name) {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Row(
-        children: const [
-          Icon(Icons.warning_amber_rounded, color: Color(0xFFFF6B6B)),
-          SizedBox(width: 12),
-          Text('Confirm Delete'),
-        ],
-      ),
+      title: const Row(children: [Icon(Icons.warning_amber_rounded, color: accentRed), SizedBox(width: 12), Text('Confirm Delete')]),
       content: Text('Are you sure you want to delete "$name"?'),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context, true),
-          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B6B)),
-          child: const Text('Delete'),
-        ),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+        ElevatedButton(onPressed: () => Navigator.pop(context, true), style: ElevatedButton.styleFrom(backgroundColor: accentRed, foregroundColor: Colors.white), child: const Text('Delete')),
       ],
     );
   }
 
   SnackBar _buildStatusSnackBar(String message, IconData icon, Color color) {
-    return SnackBar(
-      content: Row(
-        children: [
-          Icon(icon, color: Colors.white),
-          const SizedBox(width: 12),
-          Text(message),
-        ],
-      ),
-      backgroundColor: color,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    );
+    return SnackBar(content: Row(children: [Icon(icon, color: Colors.white), const SizedBox(width: 12), Text(message)]), backgroundColor: color, behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)));
   }
 
   Widget _buildErrorWidget() {
@@ -561,12 +377,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
             const SizedBox(height: 16),
             Text(errorMessage!, style: TextStyle(color: Colors.red[700], fontSize: 16), textAlign: TextAlign.center),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _loadEmployees,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A237E)),
-            ),
+            ElevatedButton.icon(onPressed: _loadEmployees, icon: const Icon(Icons.refresh), label: const Text('Retry'), style: ElevatedButton.styleFrom(backgroundColor: primaryViolet, foregroundColor: Colors.white)),
           ],
         ),
       ),
@@ -580,26 +391,12 @@ class _EmployeesPageState extends State<EmployeesPage> {
         children: [
           Icon(Icons.people_outline, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
-          Text(
-            employees.isEmpty ? 'No employees found' : 'No matching employees',
-            style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.w500),
-          ),
+          Text(employees.isEmpty ? 'No employees found' : 'No matching employees', style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
-          Text(
-            employees.isEmpty ? 'Add your first employee to get started' : 'Try adjusting your search or filter',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-          ),
+          Text(employees.isEmpty ? 'Add your first employee to get started' : 'Try adjusting your search or filter', style: TextStyle(fontSize: 14, color: Colors.grey[500]), textAlign: TextAlign.center),
           if (employees.isNotEmpty && (_searchController.text.isNotEmpty || selectedRole != null)) ...[
             const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () {
-                _searchController.clear();
-                _filterByRole(null);
-              },
-              icon: const Icon(Icons.clear_all),
-              label: const Text('Clear Filters'),
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A237E)),
-            ),
+            ElevatedButton.icon(onPressed: () { _searchController.clear(); _filterByRole(null); }, icon: const Icon(Icons.clear_all), label: const Text('Clear Filters'), style: ElevatedButton.styleFrom(backgroundColor: primaryViolet, foregroundColor: Colors.white)),
           ],
         ],
       ),

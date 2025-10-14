@@ -35,7 +35,8 @@ class Unit {
       area: (json['area'] as num?)?.toDouble(),
       bedrooms: json['bedrooms'],
       bathrooms: json['bathrooms'],
-      isBooked: json['booked'] ?? json['isBooked'] ?? false, // Handles both 'booked' and 'isBooked'
+      // This is correct for receiving data from the backend
+      isBooked: json['booked'] ?? json['isBooked'] ?? false,
       building: json['building'] != null ? Building.fromJson(json['building']) : null,
       floor: json['floor'] != null ? Floor.fromJson(json['floor']) : null,
       photoUrls: json['photoUrls'] != null ? List<String>.from(json['photoUrls']) : [],
@@ -51,10 +52,13 @@ class Unit {
       'area': area,
       'bedrooms': bedrooms,
       'bathrooms': bathrooms,
-      'isBooked': isBooked,
+      // ✅ *** THIS IS THE FIX ***
+      // Change the key being sent to the backend from 'isBooked' to 'booked'
+      'booked': isBooked,
       'building': building != null ? {'id': building!.id} : null,
       'floor': floor != null ? {'id': floor!.id} : null,
-      // photoUrls are handled via multipart, so not needed in main JSON
+      // You can include existing photo URLs if your update logic needs them
+      'photoUrls': photoUrls,
       'price': price,
       'interestRate': interestRate,
     };
