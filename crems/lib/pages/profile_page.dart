@@ -1,13 +1,14 @@
 // lib/pages/profile_page.dart
 
-import 'package:crems/models/customer.dart';
-import 'package:crems/models/transaction.dart';
-import 'package:crems/pages/bookings_page.dart';
-import 'package:crems/pages/customers_page.dart';
-import 'package:crems/pages/raw_materials_page.dart';
-import 'package:crems/pages/transactions_page.dart';
-import 'package:crems/services/customer_service.dart';
-import 'package:crems/services/transaction_service.dart';
+
+import 'package:CREMS/models/customer.dart';
+import 'package:CREMS/models/transaction.dart';
+import 'package:CREMS/pages/bookings_page.dart';
+import 'package:CREMS/pages/customers_page.dart';
+import 'package:CREMS/pages/raw_materials_page.dart';
+import 'package:CREMS/pages/transactions_page.dart';
+import 'package:CREMS/services/customer_service.dart';
+import 'package:CREMS/services/transaction_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
