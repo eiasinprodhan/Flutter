@@ -12,7 +12,7 @@ final List<DrawingCategory> categories = [
   DrawingCategory(
     name: 'Animals',
     icon: Icons.pets,
-    drawings: ['assets/svgs/animals/cat.svg', 'assets/svgs/animals/dog.svg', 'assets/svgs/animals/lion.svg'],
+    drawings: ['svgs/animals/cat.svg', 'assets/svgs/animals/dog.svg', 'assets/svgs/animals/lion.svg'],
   ),
   DrawingCategory(
     name: 'Vehicles',

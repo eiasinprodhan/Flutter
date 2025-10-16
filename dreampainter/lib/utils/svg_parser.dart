@@ -1,43 +1,32 @@
-import 'package:flutter/foundation.dart';
+import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
+import 'package:path_drawing/path_drawing.dart';
 import 'package:xml/xml.dart';
+import 'package:flutter/material.dart';
 
 class SvgParser {
   Future<List<Path>> parseSvgFromAsset(String assetPath) async {
-    try {
-      final String svgString = await rootBundle.loadString(assetPath);
-      final document = XmlDocument.parse(svgString);
-      final paths = document.findAllElements('path');
+    final String svgString = await rootBundle.loadString(assetPath);
+    final document = XmlDocument.parse(svgString);
+    final paths = <Path>[];
 
-      final List<Path> parsedPaths = [];
-      for (final element in paths) {
-        final dAttribute = element.getAttribute('d');
+    final pathElements = document.findAllElements('path');
 
-        if (dAttribute != null && dAttribute.isNotEmpty) {
-          try {
-            final path = parseSvgPath(dAttribute);
-            parsedPaths.add(path);
-          } catch (e) {
-            if (kDebugMode) {
-              print('--- SVG PARSING ERROR ---');
-              print('Could not parse a path in asset: $assetPath');
-              print('Error: $e');
-              print('Problematic path data (d): "$dAttribute"');
-              print('-------------------------');
-            }
-          }
-        }
+    for (var element in pathElements) {
+      final dAttribute = element.getAttribute('d');
+      if (dAttribute == null || dAttribute.trim().isEmpty) {
+        debugPrint("⚠️ Skipping path with empty 'd' attribute.");
+        continue;
       }
-      return parsedPaths;
-    } catch (e) {
-      if (kDebugMode) {
-        print('Failed to load or parse SVG file: $assetPath. Error: $e');
+
+      try {
+        final path = parseSvgPathData(dAttribute);
+        paths.add(path);
+      } catch (e) {
+        debugPrint("❌ Failed to parse path: $e\nData: $dAttribute");
       }
-      return [];
     }
-  }
-}
 
-parseSvgPath(String dAttribute) {
+    return paths;
+  }
 }
